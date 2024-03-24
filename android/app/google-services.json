@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "383150421118",
+    "project_id": "ezborrow-69a14",
+    "storage_bucket": "ezborrow-69a14.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:383150421118:android:f3786873ee36896f1ed42f",
+        "android_client_info": {
+          "package_name": "com.example.lms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByvPvuIneOQV8i4y4uC9OY7jw-Flmv0B8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
