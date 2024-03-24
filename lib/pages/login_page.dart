@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lms/pages/newPage.dart';
+import 'package:lms/pages/home_page.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(builder: (context) => const NewPage()),
       );
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       setState(() {
         isLoading = false;
       });
@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login Page'),
+        title: const Text('Login'),
         backgroundColor: Colors.transparent,
         elevation: 0.0,
       ),
@@ -91,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: const InputDecoration(labelText: "Password"),
                 ),
                 const SizedBox(height: 20.0),
+                const Text("\n"),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
