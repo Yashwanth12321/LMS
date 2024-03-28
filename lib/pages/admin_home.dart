@@ -1,15 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class AdminHomePage extends StatefulWidget {
+  const AdminHomePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AdminHomePage> createState() => _AdminHomePageState();
 }
 
-
-class _HomePageState extends State<HomePage> {
+class _AdminHomePageState extends State<AdminHomePage> {
   Future<void> _confirmSignOut(BuildContext context) async {
     return showDialog(
       context: context,
@@ -39,8 +38,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text('User Page'),
+        backgroundColor: Colors.orange[900],
+        title: const Text('Admin Page'),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -53,7 +52,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: const Center(
         child: Text(
-          'User Main Page',
+          'Admin Main Page!',
           style: TextStyle(fontSize: 20), 
         ),
       ),

@@ -28,10 +28,10 @@ class _SignUpPageState extends State<SignUpPage> {
         isLoading = false;
       });
 
-      // You can navigate to a new page or do any other necessary action here
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const NewPage()),
+        MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -48,8 +48,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       );
     } catch (e) {
-      // Handle other non-FirebaseAuth exceptions (optional)
-      print("Error: $e"); // Log more detailed error for debugging
+      print("Error: $e"); 
     }
   }
 

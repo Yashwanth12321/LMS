@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lms/pages/admin_home.dart'; 
 import 'package:lms/pages/home_page.dart';
 
-
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -29,10 +29,20 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const NewPage()),
-      );
+      // Check if the entered email is admin's email
+      if (_email.text == "admin@gmail.com") {
+        // Navigate to AdminHomePage if the email is admin's email
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminHomePage()),
+        );
+      } else {
+        // Navigate to regular HomePage for non-admin users
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
     } on FirebaseAuthException {
       setState(() {
         isLoading = false;
