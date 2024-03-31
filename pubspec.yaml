@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^2.27.1
   firebase_auth: ^4.17.9
+  flutter_barcode_scanner: ^2.0.0
 
 dev_dependencies:
   flutter_test:
