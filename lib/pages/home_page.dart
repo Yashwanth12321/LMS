@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lms/User_Pages/user_menu.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -8,53 +8,27 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-
 class _HomePageState extends State<HomePage> {
-  Future<void> _confirmSignOut(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.popUntil(context, ModalRoute.withName('/'));
-              },
-              child: const Text('Logout'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text('User Page'),
-        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blue[300],
+        title: const Text('EzBorrow'),
         actions: [
           IconButton(
             onPressed: () {
-              _confirmSignOut(context);
-            },
-            icon: const Icon(Icons.logout),
+              // need to complete for bar-code scanner
+            }, 
+            icon: const Icon(Icons.qr_code_scanner, size: 24.0, color: Colors.black,)
           ),
         ],
       ),
-      body: const Center(
-        child: Text(
-          'User Main Page',
-          style: TextStyle(fontSize: 20), 
+      drawer: const UserMenu(),
+      body: Center(
+        child: Container(
+          child: const Text("Hello User", style: TextStyle(fontSize: 20),),
         ),
       ),
     );

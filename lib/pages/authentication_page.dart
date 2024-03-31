@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:lms/pages/login_page.dart';
 import 'package:lms/pages/signup_page.dart';
 
@@ -13,7 +12,7 @@ class AuthPageUser extends StatelessWidget {
         title: const Text('EzBorrow', style: TextStyle(
           fontWeight: FontWeight.bold
         ),),
-        backgroundColor: Colors.orange[900],
+        backgroundColor: Colors.blue[600],
       ),
       body: Container(
         decoration: const BoxDecoration(

@@ -29,15 +29,12 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
       });
 
-      // Check if the entered email is admin's email
       if (_email.text == "admin@gmail.com") {
-        // Navigate to AdminHomePage if the email is admin's email
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const AdminHomePage()),
         );
       } else {
-        // Navigate to regular HomePage for non-admin users
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -47,13 +44,11 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLoading = false;
       });
-      String errorMessage = "Invalid Username or Password. Please try again.";
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            errorMessage,
-            style: const TextStyle(color: Colors.white),
+        const SnackBar(
+          content: Text("Invalid Username or Password. Please try again.",
+            style: TextStyle(color: Colors.white),
           ),
         ),
       );
