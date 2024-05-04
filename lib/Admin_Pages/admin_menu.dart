@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lms/Admin_Pages/BookListPage.dart';
 import 'package:lms/Admin_Pages/add_book.dart';
+
 import 'package:lms/pages/admin_home.dart';
 
 class AdminMenu extends StatelessWidget {
@@ -60,6 +62,16 @@ class AdminMenu extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AddBook()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Book List', style: TextStyle(fontSize: 14)),
+            leading: const Icon(Icons.add),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BookListPage()),
               );
             },
           ),

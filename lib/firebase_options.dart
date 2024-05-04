@@ -59,6 +59,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '383150421118',
     projectId: 'ezborrow-69a14',
     storageBucket: 'ezborrow-69a14.appspot.com',
+    
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
