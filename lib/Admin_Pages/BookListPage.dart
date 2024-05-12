@@ -15,14 +15,14 @@ class BookListPage extends StatelessWidget {
         builder: (context,
             AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             final List<DocumentSnapshot<Map<String, dynamic>>> books =
                 snapshot.data!.docs;
             if (books.isEmpty) {
-              return Center(child: const Text('No books found!'));
+              return const Center(child: Text('No books found!'));
             }
             return ListView.builder(
   itemCount: books.length,
@@ -41,7 +41,7 @@ class BookListPage extends StatelessWidget {
           leading: _buildBookThumbnail(photoUrl),
           title: Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -51,7 +51,7 @@ class BookListPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.edit),
+                icon: const Icon(Icons.edit),
                 onPressed: () async {
                   await _showEditQuantityDialog(
                     context,
@@ -62,7 +62,7 @@ class BookListPage extends StatelessWidget {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.delete),
+                icon: const Icon(Icons.delete),
                 onPressed: () async {
                   await _deleteBook(context, docId);
                 },
@@ -138,8 +138,8 @@ Future<void> _deleteBook(BuildContext context, String docId) async {
   final confirmation = await showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text('Confirm Delete'),
-      content: Text('Are you sure you want to delete this book?'),
+      title: const Text('Confirm Delete'),
+      content: const Text('Are you sure you want to delete this book?'),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),

@@ -1,198 +1,198 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-class Book {
-  final String name;
-  final String photoUrl;
-  final int quantity;
-
-  Book({
-    required this.name,
-    required this.photoUrl,
-    required this.quantity,
-  });
-
-  // Convert Book object to a Map
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'photoUrl': photoUrl,
-      'quantity': quantity,
-    };
-  }
-}
 
 class AddBook extends StatefulWidget {
   const AddBook({Key? key}) : super(key: key);
 
   @override
-  State createState() => _AddBookState();
+  State<AddBook> createState() => _AddBookState();
 }
 
-class _AddBookState extends State
-{
-  List<dynamic> books = [];
-  int startIndex = 0;
-  bool isLoading = false;
-  final ScrollController _scrollController = ScrollController();
+class _AddBookState extends State<AddBook> {
+  final _formKey = GlobalKey<FormState>();
+  String? _bookName;
+  int? _quantity;
+  String? _bookUrl;
 
-  final CollectionReference _booksRef =
-      FirebaseFirestore.instance.collection('books');
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_scrollListener);
-    fetchBooks();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      if (!isLoading) {
-        fetchBooks();
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      // If book URL is not provided, save an empty string
+      if (_bookUrl == null || _bookUrl!.isEmpty) {
+        _bookUrl = ''; // Save an empty string as the book URL
       }
+      // Check if a book with the same name already exists
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('books')
+          .where('name', isEqualTo: _bookName)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Book with the same name already exists, show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('A book with the same name already exists!'),
+          ),
+        );
+        return; // Exit the method
+      }
+      // Add book data to Firestore
+      await FirebaseFirestore.instance.collection('books').add({
+        'name': _bookName,
+        'quantity': _quantity,
+        'bookUrl': _bookUrl,
+      });
+      // Clear form fields after submission
+      _formKey.currentState!.reset();
+      // Show a confirmation snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Book added successfully!!!'),
+        ),
+      );
     }
   }
 
-  Future<void> fetchBooks() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      final response = await http.get(Uri.parse(
-          'https://www.googleapis.com/books/v1/volumes?q=flutter&startIndex=$startIndex&maxResults=20'));
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        if (data.containsKey('items')) {
-          setState(() {
-            books.addAll(data['items']);
-            startIndex += 20;
-            isLoading = false;
-          });
-        }
-      } else {
-        print('Failed to fetch books: ${response.reasonPhrase}');
-      }
-    } catch (error) {
-      print('Error fetching books: $error');
-    }
-  }
-
-  Future<void> _showQuantityDialog(String title, String photoUrl) async {
-    int? quantity;
+  Future<String?> _showUrlInputDialog(BuildContext context) async {
+    String? enteredUrl;
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Enter Quantity for "$title"'),
+        title: const Text('Enter Book URL'),
         content: TextField(
-          keyboardType: TextInputType.number,
           onChanged: (value) {
-            quantity = int.tryParse(value);
+            enteredUrl = value;
           },
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(context, null);
             },
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              if (quantity != null && quantity! > 0) {
-                _addBookToDatabase(title, photoUrl, quantity!);
-              }
-              Navigator.pop(context);
+              Navigator.pop(context, enteredUrl);
             },
-            child: const Text('Add'),
+            child: const Text('Continue'),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _addBookToDatabase(
-      String title, String photoUrl, int quantity) async {
-    try {
-      await _booksRef.add({
-        'name': title,
-        'photoUrl': photoUrl,
-        'quantity': quantity,
-      });
-      print('Book added successfully!');
-    } catch (error) {
-      print('Error adding book: $error');
-    }
+    return enteredUrl;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Book Admin"),
+        title: const Text(
+          'Add Book',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 255, 94, 0),
       ),
-      body: ListView.builder(
-        controller: _scrollController,
-        itemCount: books.length + 1,
-        itemBuilder: (context, index) {
-          if (index == books.length) {
-            return _buildLoadingIndicator();
-          } else {
-            final book = books[index];
-            final title = book['volumeInfo']['title'];
-            final author = book['volumeInfo']['authors']?.join(', ') ?? 'Unknown';
-            final photoUrl = book.containsKey('volumeInfo') &&
-                    book['volumeInfo'].containsKey('imageLinks')
-                ? book['volumeInfo']['imageLinks']['thumbnail']
-                : '';
-
-            return ListTile(
-              title: Text(title),
-              subtitle: Text(author),
-              leading: _buildBookThumbnail(photoUrl),
-              trailing: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  _showQuantityDialog(title, photoUrl);
-                },
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                "Enter Book Details",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            );
-          }
-        },
+              const SizedBox(height: 30),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Book Name',
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: InputBorder.none,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the book name';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _bookName = value;
+                  },
+                ),
+              ),
+              const SizedBox(height: 25),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Quantity',
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: InputBorder.none,
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the quantity';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _quantity = int.tryParse(value!);
+                  },
+                ),
+              ),
+              const SizedBox(height: 30),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Book URL',
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: InputBorder.none,
+                  ),
+                  onSaved: (value) {
+                    _bookUrl = value;
+                  },
+                ),
+              ),
+              const SizedBox(height: 50),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  child: const Text('Submit'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
-  }
-
-  Widget _buildLoadingIndicator() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
-
-  Widget _buildBookThumbnail(String? photoUrl) {
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Image.network(
-        photoUrl,
-        width: 50,
-        height: 50,
-        fit: BoxFit.cover,
-      );
-    } else {
-      return SizedBox(
-        width: 50,
-        height: 50,
-        child: Icon(Icons.book),
-      );
-    }
   }
 }

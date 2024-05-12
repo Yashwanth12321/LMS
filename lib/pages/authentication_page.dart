@@ -9,9 +9,10 @@ class AuthPageUser extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('EzBorrow', style: TextStyle(
-          fontWeight: FontWeight.bold
-        ),),
+        title: const Text(
+          'EzBorrow',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.blue[600],
       ),
       body: Container(
@@ -30,10 +31,9 @@ class AuthPageUser extends StatelessWidget {
               const Text(
                 'Welcome to the Library App!',
                 style: TextStyle(
-                  fontSize: 24.0, 
-                  fontWeight: FontWeight.bold, 
-                  color: Colors.black
-                ),
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
               const SizedBox(height: 120.0),
               ElevatedButton(
@@ -43,9 +43,16 @@ class AuthPageUser extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => const LoginPage()),
                   );
                 },
-                child: const Text('Login', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 20),
+                ),
+                child: const Text('Login '),
               ),
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -53,7 +60,14 @@ class AuthPageUser extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => const SignUpPage()),
                   );
                 },
-                child: const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 20),
+                ),
+                child: const Text('Sign Up'),
               ),
               const SizedBox(height: 40.0),
             ],

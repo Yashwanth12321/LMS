@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lms/Admin_Pages/BookListPage.dart';
 import 'package:lms/Admin_Pages/add_book.dart';
+import 'package:lms/Admin_Pages/book_log.dart';
 
 import 'package:lms/pages/admin_home.dart';
 
@@ -56,22 +57,32 @@ class AdminMenu extends StatelessWidget {
             },
           ),
           ListTile(
+            title: const Text('Books Log', style: TextStyle(fontSize: 14)),
+            leading: const Icon(Icons.edit),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BookLog()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Book List', style: TextStyle(fontSize: 14)),
+            leading: const Icon(Icons.list),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BookListPage()),
+              );
+            },
+          ),
+          ListTile(
             title: const Text('Add Book', style: TextStyle(fontSize: 14)),
             leading: const Icon(Icons.add),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AddBook()),
-              );
-            },
-          ),
-          ListTile(
-            title: const Text('Book List', style: TextStyle(fontSize: 14)),
-            leading: const Icon(Icons.add),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const BookListPage()),
               );
             },
           ),
