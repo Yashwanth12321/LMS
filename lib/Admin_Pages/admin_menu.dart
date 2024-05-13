@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lms/Admin_Pages/BookListPage.dart';
-import 'package:lms/Admin_Pages/add_book.dart';
 import 'package:lms/Admin_Pages/book_log.dart';
+import 'package:lms/Admin_Pages/add_book.dart';
+import 'package:lms/Admin_Pages/book_list.dart';
 
 import 'package:lms/pages/admin_home.dart';
 
@@ -72,7 +72,7 @@ class AdminMenu extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const BookListPage()),
+                MaterialPageRoute(builder: (context) => const BookList()),
               );
             },
           ),

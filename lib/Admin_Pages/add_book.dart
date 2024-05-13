@@ -173,7 +173,7 @@ class _AddBookState extends State<AddBook> {
                 ),
                 child: TextFormField(
                   decoration: const InputDecoration(
-                    labelText: 'Book URL',
+                    labelText: 'Book Pic URL',
                     contentPadding: EdgeInsets.all(15.0),
                     border: InputBorder.none,
                   ),
