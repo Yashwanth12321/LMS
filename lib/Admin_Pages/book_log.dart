@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class BookLog extends StatefulWidget {
   const BookLog({Key? key}) : super(key: key);
@@ -40,13 +41,15 @@ class _BookLogState extends State<BookLog> {
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('books').snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+        builder: (context,
+            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            final List<DocumentSnapshot<Map<String, dynamic>>> books = snapshot.data!.docs;
+            final List<DocumentSnapshot<Map<String, dynamic>>> books =
+                snapshot.data!.docs;
             if (books.isEmpty) {
               return const Center(child: Text('No books found!'));
             }
@@ -60,7 +63,8 @@ class _BookLogState extends State<BookLog> {
                 final docId = books[index].id;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Card(
                     elevation: 3,
                     child: ListTile(
@@ -93,6 +97,41 @@ class _BookLogState extends State<BookLog> {
                               await _deleteBook(context, docId);
                             },
                           ),
+                          IconButton(
+                            icon: const Icon(Icons.qr_code),
+                            onPressed: () async {
+                              // ...
+
+                              IconButton(
+                                icon: const Icon(Icons.qr_code),
+                                onPressed: () async {
+                                  final qrCodeData = docId;
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('QR Code'),
+                                      content: SizedBox(
+                                        width: 200,
+                                        height: 200,
+                                        child: QrImageView(
+                                          data: qrCodeData,
+                                          version: QrVersions.auto,
+                                          size: 200.0,
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -114,9 +153,11 @@ class _BookLogState extends State<BookLog> {
     }
   }
 
-  Future<void> _showEditQuantityDialog(BuildContext context, String title, int currentQuantity, String docId) async {
+  Future<void> _showEditQuantityDialog(BuildContext context, String title,
+      int currentQuantity, String docId) async {
     int? newQuantity;
-    TextEditingController controller = TextEditingController(text: currentQuantity.toString());
+    TextEditingController controller =
+        TextEditingController(text: currentQuantity.toString());
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -192,8 +233,6 @@ class _BookLogState extends State<BookLog> {
   }
 }
 
-
-
 class BookSearchDelegate extends SearchDelegate<String> {
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -220,14 +259,18 @@ class BookSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildResults(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('books').where('name', isEqualTo: query).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('books')
+          .where('name', isEqualTo: query)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          final List<DocumentSnapshot<Map<String, dynamic>>> books = snapshot.data!.docs;
+          final List<DocumentSnapshot<Map<String, dynamic>>> books =
+              snapshot.data!.docs;
           if (books.isEmpty) {
             return Center(child: Text('No books found for "$query"'));
           } else {
@@ -260,14 +303,18 @@ class BookSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('books').where('name', isGreaterThanOrEqualTo: query).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('books')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          final List<DocumentSnapshot<Map<String, dynamic>>> books = snapshot.data!.docs;
+          final List<DocumentSnapshot<Map<String, dynamic>>> books =
+              snapshot.data!.docs;
           if (books.isEmpty) {
             return Center(child: Text('No books found for "$query"'));
           } else {
@@ -305,7 +352,6 @@ class BookSearchDelegate extends SearchDelegate<String> {
     }
   }
 }
-
 
 void main() {
   runApp(const MaterialApp(
