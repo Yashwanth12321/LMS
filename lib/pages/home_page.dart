@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   
-  String _scanResult = "";
+  String _scanResult = ""; 
   @override
 
   Future<void> scanCode() async {

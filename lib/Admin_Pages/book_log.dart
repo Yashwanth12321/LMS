@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lms/Admin_Pages/qr_code_page.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class BookLog extends StatefulWidget {
@@ -97,48 +98,25 @@ class _BookLogState extends State<BookLog> {
                               await _deleteBook(context, docId);
                             },
                           ),
-                          IconButton(
+                            IconButton(
                             icon: const Icon(Icons.qr_code),
                             onPressed: () async {
-                              // ...
-
-                              IconButton(
-                                icon: const Icon(Icons.qr_code),
-                                onPressed: () async {
-                                  final qrCodeData = docId;
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('QR Code'),
-                                      content: SizedBox(
-                                        width: 200,
-                                        height: 200,
-                                        child: QrImageView(
-                                          data: qrCodeData,
-                                          version: QrVersions.auto,
-                                          size: 200.0,
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                              final qrCodeData = docId;
+                              Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => QRCodePage(qrCodeData: qrCodeData),
+                              ),
                               );
                             },
+                            ),
+                          ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
+                        ),
+                        ),
+                      );
+                      },
+                    );
           }
         },
       ),
