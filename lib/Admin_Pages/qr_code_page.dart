@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Import the qr_flutter package
+import 'package:barcode_widget/barcode_widget.dart'; // Import the barcode_widget package
 
 class QRCodePage extends StatelessWidget {
   final String qrCodeData;
@@ -13,11 +14,12 @@ class QRCodePage extends StatelessWidget {
         title: Text('QR Code'),
       ),
       body: Center(
-        child: QrImageView(
-          // Use QrImage widget to display the QR code
+        child: BarcodeWidget(
+          // Use BarcodeWidget to display the barcode
+          barcode: Barcode.code128(),
           data: qrCodeData,
-          version: QrVersions.auto,
-          size: 200.0,
+          width: 400.0,
+          height: 100.0,
         ),
       ),
     );

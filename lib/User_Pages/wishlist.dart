@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lms/User_Pages/user_menu.dart';
 
 class WishList extends StatefulWidget {
-  const WishList({super.key});
+  final String email;
+
+  const WishList({required this.email, Key? key}) : super(key: key);
 
   @override
   State<WishList> createState() => _WishListState();
@@ -13,12 +15,13 @@ class _WishListState extends State<WishList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Wishlist Page", 
+        title: const Text(
+          "Wishlist Page",
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.orange[900],
       ),
-      drawer: const UserMenu(),
+      drawer: UserMenu(email: widget.email),
     );
   }
 }

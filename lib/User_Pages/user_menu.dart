@@ -4,9 +4,16 @@ import 'package:lms/User_Pages/borrowing_history.dart';
 import 'package:lms/User_Pages/wishlist.dart';
 import 'package:lms/pages/home_page.dart';
 
-class UserMenu extends StatelessWidget {
-  const UserMenu({Key? key}) : super(key: key);
+class UserMenu extends StatefulWidget {
+  final String email;
 
+  const UserMenu({required this.email, Key? key}) : super(key: key);
+
+  @override
+  _UserMenuState createState() => _UserMenuState();
+}
+
+class _UserMenuState extends State<UserMenu> {
   Future<void> _confirmSignOut(BuildContext context) async {
     return showDialog(
       context: context,
@@ -50,7 +57,7 @@ class UserMenu extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(builder: (context) => HomePage(email: widget.email)),
               );
             },
           ),
@@ -60,7 +67,7 @@ class UserMenu extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const BorrowHistory()),
+                MaterialPageRoute(builder: (context) => BorrowHistory(email: widget.email)),
               );
             },
           ),
@@ -70,7 +77,7 @@ class UserMenu extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const WishList()),
+                MaterialPageRoute(builder: (context) => WishList(email: widget.email,)),
               );
             },
           ),

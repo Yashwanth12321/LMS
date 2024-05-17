@@ -36,9 +36,7 @@ dependencies:
   barcode: ^2.2.8
   uuid: ^3.0.4
  
-  
-
-  
+  barcode_widget: ^2.0.4
   
 
 
