@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lms/User_Pages/borrowing_history.dart';
+import 'package:lms/User_Pages/user_menu.dart';
 import 'package:lms/pages/admin_home.dart'; 
 import 'package:lms/pages/home_page.dart';
 
@@ -37,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+            MaterialPageRoute(builder: (context) => HomePage(email: _email.text)),
         );
       }
     } on FirebaseAuthException {
@@ -101,6 +103,8 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       signInWithEmailAndPassword();
+                        
+                    
                     }
                   },
                   child: isLoading

@@ -4,8 +4,9 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:lms/User_Pages/user_menu.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+      final String email;
 
+  const HomePage({required this.email, Key? key}) : super(key: key);
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -42,7 +43,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      drawer: const UserMenu(),
+      drawer:  UserMenu(email: widget.email),
       body: Center(
         child: Container(
           child: const Text("Hello User", style: TextStyle(fontSize: 20),),
