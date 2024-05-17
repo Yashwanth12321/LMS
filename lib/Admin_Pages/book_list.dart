@@ -3,18 +3,18 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
-import 'package:uuid/uuid.dart';
-
 
 class Book {
   final String name;
   final String photoUrl;
   final int quantity;
+  final int isBorrowed; // 0 for not borrowed, 1 for borrowed
 
   Book({
     required this.name,
     required this.photoUrl,
     required this.quantity,
+    this.isBorrowed = 0, // Default to not borrowed (0)
   });
 
   // Convert Book object to a Map
@@ -23,6 +23,7 @@ class Book {
       'name': name,
       'photoUrl': photoUrl,
       'quantity': quantity,
+      'isBorrowed': isBorrowed,
     };
   }
 }
@@ -143,6 +144,7 @@ class _BookListState extends State<BookList> {
             'name': title,
             'photoUrl': photoUrl,
             'quantity': 1,
+            'isBorrowed': 0, // New book is not borrowed by default
           });
         }
         print('Book quantity updated successfully!');
@@ -153,6 +155,7 @@ class _BookListState extends State<BookList> {
             'name': title,
             'photoUrl': photoUrl,
             'quantity': 1,
+            'isBorrowed': 0, // New book is not borrowed by default
           });
         }
         print('Book added successfully!');

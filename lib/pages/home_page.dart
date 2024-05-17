@@ -32,43 +32,82 @@ class _HomePageState extends State<HomePage> {
     });
 
     if (barcodeScanRes != '-1') {
-      addBookToUser(barcodeScanRes);
+      showConfirmationDialog(barcodeScanRes);
     }
   }
 
-  Future<void> addBookToUser(String bookId) async {
+  Future<void> showConfirmationDialog(String bookId) async {
     try {
-      // Reference to Firestore collections
-      final booksRef = FirebaseFirestore.instance.collection('books');
-      final usersRef = FirebaseFirestore.instance.collection('users');
-
-      // Fetch book details using bookId
-      final DocumentSnapshot bookDoc = await booksRef.doc(bookId).get();
+      final DocumentSnapshot bookDoc =
+          await FirebaseFirestore.instance.collection('books').doc(bookId).get();
 
       if (bookDoc.exists) {
-        // Get book data
         final bookData = bookDoc.data() as Map<String, dynamic>;
 
-        // Get user's document reference
-        final userDocRef = usersRef.doc(widget.email);
-
-        // Add the book to user's collection
-        await userDocRef.collection('borrowed_books').doc(bookId).set({
-          'name': bookData['name'],
-          'photoUrl': bookData['photoUrl'],
-          'borrowedDate': Timestamp.now(),
-        });
-
-        print('Book added to user successfully!');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Book "${bookData['name']}" added to your borrowed list!')),
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Confirm Borrow'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Book Name: ${bookData['name']}'),
+                  Text('Quantity: ${bookData['quantity']}'),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () async {
+                    await addBookToUser(bookId, bookData);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Confirm'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Cancel'),
+                ),
+              ],
+            );
+          },
         );
       } else {
-        print('Book not found!');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Book not found!')),
         );
       }
+    } catch (error) {
+      print('Error fetching book details: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch book details.')),
+      );
+    }
+  }
+
+  Future<void> addBookToUser(String bookId, Map<String, dynamic> bookData) async {
+    try {
+      final usersRef = FirebaseFirestore.instance.collection('users');
+      final userDocRef = usersRef.doc(widget.email);
+
+      await userDocRef.collection('borrowed_books').doc(bookId).set({
+        'name': bookData['name'],
+        'photoUrl': bookData['photoUrl'],
+        'borrowedDate': Timestamp.now(),
+      });
+
+      // Update isBorrowed field to 1 in the books collection
+      await FirebaseFirestore.instance.collection('books').doc(bookId).update({
+        'isBorrowed': 1,
+      });
+
+      print('Book added to user successfully!');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Book "${bookData['name']}" added to your borrowed list!')),
+      );
     } catch (error) {
       print('Error adding book to user: $error');
       ScaffoldMessenger.of(context).showSnackBar(

@@ -25,6 +25,38 @@ class _BookLogState extends State<BookLog> {
     super.dispose();
   }
 
+  Future<void> _deleteAllBooks() async {
+    final confirmation = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete All'),
+        content: const Text('Are you sure you want to delete all books?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmation == true) {
+      final QuerySnapshot<Map<String, dynamic>> booksSnapshot =
+          await FirebaseFirestore.instance.collection('books').get();
+      final WriteBatch batch = FirebaseFirestore.instance.batch();
+      for (final DocumentSnapshot<Map<String, dynamic>> book
+          in booksSnapshot.docs) {
+        batch.delete(book.reference);
+      }
+      await batch.commit();
+      print('All books deleted successfully!');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,10 +70,17 @@ class _BookLogState extends State<BookLog> {
               showSearch(context: context, delegate: BookSearchDelegate());
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            onPressed: _deleteAllBooks,
+          ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('books').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('books')
+            .where('isBorrowed', isEqualTo: 0)
+            .snapshots(),
         builder: (context,
             AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -85,11 +124,7 @@ class _BookLogState extends State<BookLog> {
                             icon: const Icon(Icons.edit),
                             onPressed: () async {
                               await _showEditQuantityDialog(
-                                context,
-                                title,
-                                quantity,
-                                docId,
-                              );
+                                  context, title, quantity, docId);
                             },
                           ),
                           IconButton(
@@ -98,25 +133,26 @@ class _BookLogState extends State<BookLog> {
                               await _deleteBook(context, docId);
                             },
                           ),
-                            IconButton(
+                          IconButton(
                             icon: const Icon(Icons.qr_code),
                             onPressed: () async {
                               final qrCodeData = docId;
                               Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => QRCodePage(qrCodeData: qrCodeData),
-                              ),
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      QRCodePage(qrCodeData: qrCodeData),
+                                ),
                               );
                             },
-                            ),
-                          ],
                           ),
-                        ),
-                        ),
-                      );
-                      },
-                    );
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
           }
         },
       ),
@@ -153,7 +189,6 @@ class _BookLogState extends State<BookLog> {
           TextButton(
             onPressed: () {
               if (newQuantity != null && newQuantity! > 0) {
-                // Call a function to update quantity in Firestore
                 _updateBookQuantity(docId, newQuantity!);
               }
               Navigator.pop(context);
@@ -198,7 +233,6 @@ class _BookLogState extends State<BookLog> {
     if (confirmation == true) {
       await _removeFromFirestore(docId);
     }
-    return;
   }
 
   Future<void> _removeFromFirestore(String docId) async {
@@ -240,6 +274,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
       stream: FirebaseFirestore.instance
           .collection('books')
           .where('name', isEqualTo: query)
+          .where('isBorrowed', isEqualTo: 0)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -284,6 +319,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
       stream: FirebaseFirestore.instance
           .collection('books')
           .where('name', isGreaterThanOrEqualTo: query)
+          .where('isBorrowed', isEqualTo: 0)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
