@@ -34,7 +34,10 @@ dependencies:
   http: ^1.2.1
   qr_flutter: ^4.1.0
   barcode: ^2.2.8
+  uuid: ^3.0.4
  
+  
+
   
   
 

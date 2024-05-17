@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+import 'package:uuid/uuid.dart';
+
 
 class Book {
   final String name;
@@ -31,8 +34,7 @@ class BookList extends StatefulWidget {
   State createState() => _BookListState();
 }
 
-class _BookListState extends State
-{
+class _BookListState extends State<BookList> {
   List<dynamic> books = [];
   int startIndex = 0;
   bool isLoading = false;
@@ -123,6 +125,7 @@ class _BookListState extends State
 
   Future<void> _BookListToDatabase(
     String title, String photoUrl, int quantity) async {
+    final uuid = Uuid();
     try {
       // Check if the book already exists in the collection
       final QuerySnapshot existingBooks = await _booksRef
@@ -135,21 +138,29 @@ class _BookListState extends State
         final DocumentSnapshot doc = existingBooks.docs.first;
         final int currentQuantity = doc['quantity'] ?? 0;
         await doc.reference.update({'quantity': currentQuantity + quantity});
+        for (int i = 0; i < quantity; i++) {
+          await _booksRef.doc(uuid.v4()).set({
+            'name': title,
+            'photoUrl': photoUrl,
+            'quantity': 1,
+          });
+        }
         print('Book quantity updated successfully!');
       } else {
         // Add the book if it doesn't exist
-        await _booksRef.add({
-          'name': title,
-          'photoUrl': photoUrl,
-          'quantity': quantity,
-        });
+        for (int i = 0; i < quantity; i++) {
+          await _booksRef.doc(uuid.v4()).set({
+            'name': title,
+            'photoUrl': photoUrl,
+            'quantity': 1,
+          });
+        }
         print('Book added successfully!');
       }
     } catch (error) {
       print('Error updating/adding book: $error');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
