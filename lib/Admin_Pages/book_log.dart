@@ -112,8 +112,8 @@ class _BookLogState extends State<BookLog> {
                           leading: _buildBookThumbnail(photoUrl),
                           title: Text('Quantity: $quantity'),
                           subtitle: isBorrowed == 1
-                              ? const Text('Status: Issued')
-                              : const Text('Status: Available'),
+                              ? const Text('Status: Issued', style: TextStyle(fontWeight: FontWeight.bold))
+                              : const Text('Status: Available', style: TextStyle(fontWeight: FontWeight.bold),),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -136,19 +136,24 @@ class _BookLogState extends State<BookLog> {
                                       context, docId, 'userId');
                                 },
                               ),
-                              IconButton(
+                              isBorrowed == 0 
+                              ? IconButton(
+                                  icon: const Icon(Icons.qr_code),
+                                  onPressed: () async {
+                                    final qrCodeData = docId;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            QRCodePage(qrCodeData: qrCodeData),
+                                      ),
+                                    );
+                                  },
+                                )
+                              :IconButton(
                                 icon: const Icon(Icons.qr_code),
-                                onPressed: () async {
-                                  final qrCodeData = docId;
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          QRCodePage(qrCodeData: qrCodeData),
-                                    ),
-                                  );
-                                },
-                              ),
+                                onPressed: ()  {},
+                              ) ,
                             ],
                           ),
                         );
