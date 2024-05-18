@@ -32,25 +32,22 @@ class BorrowHistory extends StatelessWidget {
           return ListView.builder(
             itemCount: borrowHistory.length,
             itemBuilder: (context, index) {
-              var history =
-                  borrowHistory[index].data() as Map<String, dynamic>;
-              
-              // Assign borrowedDateTime as null if the 'deadline' field is null
-              DateTime? borrowedDateTime;
-              if (history['deadline'] != null) {
-                Timestamp borrowedDate = history['deadline'];
-                borrowedDateTime = borrowedDate.toDate();
-              }
+              var history = borrowHistory[index].data() as Map<String, dynamic>;
+
+              // Convert the 'deadlineDate' field to a DateTime
+              Timestamp deadlineTimestamp = history['deadlineDate'] as Timestamp;
+              DateTime deadlineDateTime = deadlineTimestamp.toDate();
 
               // Manually format the date string to display only date/month/year
-              String formattedDeadline = borrowedDateTime != null
-                  ? '${borrowedDateTime.day}/${borrowedDateTime.month}/${borrowedDateTime.year}'
-                  : 'Not specified';
+              String formattedDeadline = '${deadlineDateTime.day}/${deadlineDateTime.month}/${deadlineDateTime.year}';
 
+              // Safely handle the display of optional fields
               return ListTile(
-                title: Text(history['name']),
+                title: Text(history['name'] ?? 'No name'),
                 subtitle: Text('Deadline: $formattedDeadline'), // Display formatted date
-                leading: Image.network(history['photoUrl']),
+                leading: history['photoUrl'] != null
+                    ? Image.network(history['photoUrl'])
+                    : const Icon(Icons.book),
               );
             },
           );
