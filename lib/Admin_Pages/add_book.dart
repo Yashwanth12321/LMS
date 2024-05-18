@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -13,15 +12,16 @@ class _AddBookState extends State<AddBook> {
   final _formKey = GlobalKey<FormState>();
   String? _bookName;
   int? _quantity;
-  String? _bookUrl;
-
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      // If book URL is not provided, save an empty string
-      if (_bookUrl == null || _bookUrl!.isEmpty) {
-        _bookUrl = ''; // Save an empty string as the book URL
-      }
+  String? _bookUrl = ''; // Default photo URL
+  int? _isBorrowed;
+Future<void> _submitForm() async {
+  if (_formKey.currentState!.validate()) {
+    _formKey.currentState!.save();
+    // If book URL is not provided, save a default photo URL
+    if (_bookUrl == null || _bookUrl!.isEmpty) {
+      _bookUrl = 'https://picsum.photos/200/300.jpg';
+    }
+    try {
       // Check if a book with the same name already exists
       final querySnapshot = await FirebaseFirestore.instance
           .collection('books')
@@ -36,52 +36,46 @@ class _AddBookState extends State<AddBook> {
         );
         return; // Exit the method
       }
-      // Add book data to Firestore
-      await FirebaseFirestore.instance.collection('books').add({
-        'name': _bookName,
-        'quantity': _quantity,
-        'bookUrl': _bookUrl,
+
+      final List<Map<String, dynamic>> booksToAdd = List.generate(
+        _quantity!,
+        (index) => {
+          'name': _bookName,
+          'quantity': 1, // Each book starts with a quantity of 1
+          'photoUrl': _bookUrl,
+          'isBorrowed': 0, // New book is not borrowed by default
+        },
+      );
+
+      // Add book data to Firestore for each item in the booksToAdd list
+      final batch = FirebaseFirestore.instance.batch();
+      booksToAdd.forEach((bookData) {
+        batch.set(
+          FirebaseFirestore.instance.collection('books').doc(),
+          bookData,
+        );
       });
+      await batch.commit();
+
       // Clear form fields after submission
       _formKey.currentState!.reset();
       // Show a confirmation snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Book added successfully!!!'),
+          content: Text('Books added successfully!!!'),
+        ),
+      );
+    } catch (error) {
+      print('Error adding book: $error');
+      // Show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to add books. Please try again.'),
         ),
       );
     }
   }
-
-  Future<String?> _showUrlInputDialog(BuildContext context) async {
-    String? enteredUrl;
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Enter Book URL'),
-        content: TextField(
-          onChanged: (value) {
-            enteredUrl = value;
-          },
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, null);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, enteredUrl);
-            },
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
-    );
-    return enteredUrl;
-  }
+}
 
   @override
   Widget build(BuildContext context) {
