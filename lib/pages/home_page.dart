@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lms/User_Pages/user_menu.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends StatefulWidget {
   final String email;
@@ -48,12 +49,13 @@ class _HomePageState extends State<HomePage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Confirm Borrow'),
+              title: const Text('Confirm Borrow'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Book Name: ${bookData['name']}'),
+                  Text('Author: ${bookData['author']}'),
                   Text('Quantity: ${bookData['quantity']}'),
                 ],
               ),
@@ -63,13 +65,20 @@ class _HomePageState extends State<HomePage> {
                     await addBookToUser(bookId, bookData);
                     Navigator.of(context).pop();
                   },
-                  child: Text('Confirm'),
+                  child: const Text('Borrow'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await addBookToWishlist(bookId, bookData);
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Add to Wishlist'),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
               ],
             );
@@ -77,13 +86,13 @@ class _HomePageState extends State<HomePage> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Book not found!')),
+          const SnackBar(content: Text('Book not found!')),
         );
       }
     } catch (error) {
       print('Error fetching book details: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch book details.')),
+        const SnackBar(content: Text('Failed to fetch book details.')),
       );
     }
   }
@@ -97,6 +106,7 @@ class _HomePageState extends State<HomePage> {
         'name': bookData['name'],
         'photoUrl': bookData['photoUrl'],
         'borrowedDate': Timestamp.now(),
+        'deadlineDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 45))),
       });
 
       // Update isBorrowed field to 1 in the books collection
@@ -111,7 +121,30 @@ class _HomePageState extends State<HomePage> {
     } catch (error) {
       print('Error adding book to user: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add book to your borrowed list.')),
+        const SnackBar(content: Text('Failed to add book to your borrowed list.')),
+      );
+    }
+  }
+
+  Future<void> addBookToWishlist(String bookId, Map<String, dynamic> bookData) async {
+    try {
+      final usersRef = FirebaseFirestore.instance.collection('users');
+      final userDocRef = usersRef.doc(widget.email);
+
+      await userDocRef.collection('wishlist').doc(bookId).set({
+        'name': bookData['name'],
+        'author': bookData['author'],
+        'addedDate': Timestamp.now(),
+      });
+
+      print('Book added to wishlist successfully!');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Book "${bookData['name']}" added to your wishlist!')),
+      );
+    } catch (error) {
+      print('Error adding book to wishlist: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add book to your wishlist.')),
       );
     }
   }
