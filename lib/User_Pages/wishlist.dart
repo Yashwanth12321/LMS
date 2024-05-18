@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lms/User_Pages/user_menu.dart';
 
-
 class WishList extends StatefulWidget {
   final String email;
 
@@ -23,26 +22,57 @@ class _WishListState extends State<WishList> {
 
   Future<void> fetchWishlist() async {
     try {
-      final userDocRef = FirebaseFirestore.instance.collection('users').doc(widget.email);
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(widget.email);
       final wishlistSnapshot = await userDocRef.collection('wishlist').get();
 
-      final List<Map<String, dynamic>> wishlist = wishlistSnapshot.docs.map((doc) {
-        return {
-          'name': doc['name'],
-          'author': doc['author'],
-        };
-      }).toList();
+      final Map<String, Map<String, dynamic>> bookMap = {};
 
-      final Set<Map<String, dynamic>> uniqueWishlistSet = {};
-      for (var book in wishlist) {
-        uniqueWishlistSet.add(book);
+      for (var doc in wishlistSnapshot.docs) {
+        final bookName = doc['name'];
+        final bookAuthor = doc['author'];
+        final bookPhoto = doc['photoUrl']; // Assume photoUrl field exists
+
+        if (bookMap.containsKey(bookName)) {
+          bookMap[bookName]!['quantity'] += 1;
+        } else {
+          bookMap[bookName] = {
+            'name': bookName,
+            'author': bookAuthor,
+            'photoUrl': bookPhoto,
+            'quantity': 1,
+          };
+        }
       }
 
       setState(() {
-        uniqueWishlist = uniqueWishlistSet.toList();
+        uniqueWishlist = bookMap.values.toList();
       });
     } catch (error) {
       print('Error fetching wishlist: $error');
+    }
+  }
+
+  Future<void> removeFromWishlist(String bookName) async {
+    try {
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(widget.email);
+      final wishlistDocRef = userDocRef.collection('wishlist').doc(bookName);
+      
+      // Get the current wishlist from the user's document
+      final userDoc = await userDocRef.get();
+      final List<dynamic> currentWishlist = userDoc.get('wishlist');
+
+      // Remove the book from the current wishlist
+      currentWishlist.remove(bookName);
+
+      // Update the wishlist field in the user's document
+      await userDocRef.update({'wishlist': currentWishlist});
+
+      // Delete the document from the wishlist collection
+      await wishlistDocRef.delete();
+    } catch (error) {
+      print('Error removing book from wishlist: $error');
     }
   }
 
@@ -64,8 +94,27 @@ class _WishListState extends State<WishList> {
               itemBuilder: (context, index) {
                 final book = uniqueWishlist[index];
                 return ListTile(
+                  leading: Image.network(
+                    book['photoUrl'],
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image);
+                    },
+                  ),
                   title: Text(book['name']),
-                  subtitle: Text(book['author']),
+                  subtitle: Text('Author: ${book['author']}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.favorite, color: Colors.red), // Heart icon
+                    onPressed: () {
+                      removeFromWishlist(book['name']);
+                      // Update the UI by removing the book from the list
+                      setState(() {
+                        uniqueWishlist.removeAt(index);
+                      });
+                    },
+                  ),
                 );
               },
             ),

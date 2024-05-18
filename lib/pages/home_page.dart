@@ -127,27 +127,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> addBookToWishlist(String bookId, Map<String, dynamic> bookData) async {
-    try {
-      final usersRef = FirebaseFirestore.instance.collection('users');
-      final userDocRef = usersRef.doc(widget.email);
+  try {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    final userDocRef = usersRef.doc(widget.email);
 
-      await userDocRef.collection('wishlist').doc(bookId).set({
-        'name': bookData['name'],
-        'author': bookData['author'],
-        'addedDate': Timestamp.now(),
-      });
+    await userDocRef.collection('wishlist').doc(bookId).set({
+      'name': bookData['name'],
+      'author': bookData['author'],
+      'photoUrl': bookData['photoUrl'], // Adding photo URL to the wishlist
+      'addedDate': Timestamp.now(),
+    });
 
-      print('Book added to wishlist successfully!');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Book "${bookData['name']}" added to your wishlist!')),
-      );
-    } catch (error) {
-      print('Error adding book to wishlist: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add book to your wishlist.')),
-      );
-    }
+    print('Book added to wishlist successfully!');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Book "${bookData['name']}" added to your wishlist!')),
+    );
+  } catch (error) {
+    print('Error adding book to wishlist: $error');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to add book to your wishlist.')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
