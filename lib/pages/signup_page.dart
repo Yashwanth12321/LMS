@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lms/pages/home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lms/pages/login_page.dart';
+import 'package:lms/utils/text_utils.dart'; // Assuming this is where TextUtil is defined
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  signUpWithEmailAndPassword() async {
+  Future<void> signUpWithEmailAndPassword() async {
     try {
       setState(() {
         isLoading = true;
@@ -28,10 +29,9 @@ class _SignUpPageState extends State<SignUpPage> {
         isLoading = false;
       });
 
-
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage(email: '',)),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -48,72 +48,134 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       );
     } catch (e) {
-      print("Error: $e"); 
+      print("Error: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign Up'),
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const Text(
-                  'Create an Account\n',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg1.jpeg'), // Fixed to bg1.jpeg
+            fit: BoxFit.fill,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Container(
+          height: 400,
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 30),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.white),
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.black.withOpacity(0.1),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(25),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Spacer(),
+                  Center(
+                    child: TextUtil(
+                      text: "Sign Up",
+                      weight: true,
+                      size: 30,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20.0),
-                TextFormField(
-                  controller: _emailController,
-                  validator: (text) {
-                    if (text == null || text.isEmpty) {
-                      return 'Email is empty';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(labelText: "Email"),
-                ),
-                const SizedBox(height: 20.0),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  validator: (text) {
-                    if (text == null || text.isEmpty) {
-                      return 'Password is empty';
-                    }
-                    return null;
-                  },
-                  decoration: const InputDecoration(labelText: "Password"),
-                ),
-                const SizedBox(height: 20.0),
-                const Text("\n"),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      signUpWithEmailAndPassword();
-                    }
-                  },
-                  child: isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text("Sign Up"),
-                ),
-              ],
+                  const Spacer(),
+                  TextUtil(
+                    text: "Email",
+                  ),
+                  Container(
+                    height: 35,
+                    decoration: const BoxDecoration(
+                      border:
+                          Border(bottom: BorderSide(color: Colors.white)),
+                    ),
+                    child: TextFormField(
+                      controller: _emailController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        suffixIcon: Icon(
+                          Icons.mail,
+                          color: Colors.white,
+                        ),
+                        fillColor: Colors.white,
+                        border: InputBorder.none,
+                      ),
+                      validator: (text) {
+                        if (text == null || text.isEmpty) {
+                          return 'Email is empty';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const Spacer(),
+                  TextUtil(
+                    text: "Password",
+                  ),
+                  Container(
+                    height: 35,
+                    decoration: const BoxDecoration(
+                      border:
+                          Border(bottom: BorderSide(color: Colors.white)),
+                    ),
+                    child: TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        suffixIcon: Icon(
+                          Icons.lock,
+                          color: Colors.white,
+                        ),
+                        fillColor: Colors.white,
+                        border: InputBorder.none,
+                      ),
+                      validator: (text) {
+                        if (text == null || text.isEmpty) {
+                          return 'Password is empty';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        signUpWithEmailAndPassword();
+                      }
+                    },
+                    child: Container(
+                      height: 40,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      alignment: Alignment.center,
+                      child: isLoading
+                          ? const CircularProgressIndicator(
+                              color: Colors.black,
+                            )
+                          : TextUtil(
+                              text: "Sign Up",
+                              color: Colors.black,
+                            ),
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
             ),
           ),
         ),

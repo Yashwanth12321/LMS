@@ -54,42 +54,46 @@ class _WishListState extends State<WishList> {
   }
 
   Future<void> removeFromWishlist(String bookName) async {
-  try {
-    final userDocRef =
-        FirebaseFirestore.instance.collection('users').doc(widget.email);
-    final wishlistDocRef = userDocRef.collection('wishlist').doc(bookName);
-    
-    // Get the current wishlist from the user's document
-    final userDoc = await userDocRef.get();
-    await _removeFromFirestore(userDoc, wishlistDocRef);
+    try {
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(widget.email);
+      final wishlistDocRef = userDocRef.collection('wishlist').where('name', isEqualTo: bookName);
+      
+      // Get all documents that match the book name
+      final querySnapshot = await wishlistDocRef.get();
+      
+      // Loop through all documents and delete them
+      for (var doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
 
-    // Update the UI by removing the book from the list
-    setState(() {
-      uniqueWishlist.removeWhere((book) => book['name'] == bookName);
-    });
-  } catch (error) {
-    print('Error removing book from wishlist: $error');
+      // Update the user's wishlist field
+      await _updateUserWishlistField(bookName);
+
+      // Update the UI by removing the book from the list
+      setState(() {
+        uniqueWishlist.removeWhere((book) => book['name'] == bookName);
+      });
+    } catch (error) {
+      print('Error removing book from wishlist: $error');
+    }
   }
-}
 
-Future<void> _removeFromFirestore(DocumentSnapshot userDoc, DocumentReference wishlistDocRef) async {
-  try {
-    final List<dynamic> currentWishlist = userDoc.get('wishlist');
+  Future<void> _updateUserWishlistField(String bookName) async {
+    try {
+      final userDocRef = FirebaseFirestore.instance.collection('users').doc(widget.email);
+      final userDoc = await userDocRef.get();
+      final List<dynamic> currentWishlist = userDoc.get('wishlist');
 
-    // Remove the book from the current wishlist
-    currentWishlist.removeWhere((book) => book == wishlistDocRef.id);
+      // Remove the book from the current wishlist
+      currentWishlist.removeWhere((book) => book == bookName);
 
-    // Update the wishlist field in the user's document
-    await userDoc.reference.update({'wishlist': currentWishlist});
-
-    // Delete the document from the wishlist collection
-    await wishlistDocRef.delete();
-  } catch (error) {
-    print('Error removing book from Firestore: $error');
+      // Update the wishlist field in the user's document
+      await userDocRef.update({'wishlist': currentWishlist});
+    } catch (error) {
+      print('Error updating user wishlist field: $error');
+    }
   }
-}
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +107,11 @@ Future<void> _removeFromFirestore(DocumentSnapshot userDoc, DocumentReference wi
       ),
       drawer: UserMenu(email: widget.email),
       body: uniqueWishlist.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: uniqueWishlist.isEmpty
+                  ? const Text('Your wishlist is currently empty.')
+                  : const CircularProgressIndicator(),
+            )
           : ListView.builder(
               itemCount: uniqueWishlist.length,
               itemBuilder: (context, index) {
@@ -124,10 +132,6 @@ Future<void> _removeFromFirestore(DocumentSnapshot userDoc, DocumentReference wi
                     icon: Icon(Icons.favorite, color: Colors.red), // Heart icon
                     onPressed: () {
                       removeFromWishlist(book['name']);
-                      // Update the UI by removing the book from the list
-                      setState(() {
-                        uniqueWishlist.removeAt(index);
-                      });
                     },
                   ),
                 );
