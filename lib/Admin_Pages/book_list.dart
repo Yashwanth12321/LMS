@@ -9,12 +9,16 @@ class Book {
   final String photoUrl;
   final int quantity;
   final int isBorrowed; // 0 for not borrowed, 1 for borrowed
+  final String author;
+  final List<String> genres;
 
   Book({
     required this.name,
     required this.photoUrl,
     required this.quantity,
     this.isBorrowed = 0, // Default to not borrowed (0)
+    required this.author,
+    required this.genres,
   });
 
   // Convert Book object to a Map
@@ -24,6 +28,8 @@ class Book {
       'photoUrl': photoUrl,
       'quantity': quantity,
       'isBorrowed': isBorrowed,
+      'author': author,
+      'genres': genres,
     };
   }
 }
@@ -36,7 +42,7 @@ class BookList extends StatefulWidget {
 }
 
 class _BookListState extends State<BookList> {
-  List<dynamic> books = [];
+  List<Book> books = []; // Modify to hold Book objects
   int startIndex = 0;
   bool isLoading = false;
   final ScrollController _scrollController = ScrollController();
@@ -51,7 +57,6 @@ class _BookListState extends State<BookList> {
     fetchBooks();
   }
 
-  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -65,7 +70,7 @@ class _BookListState extends State<BookList> {
       }
     }
   }
-
+  // Fetch books from API and convert them to Book objects
   Future<void> fetchBooks() async {
     setState(() {
       isLoading = true;
@@ -77,8 +82,26 @@ class _BookListState extends State<BookList> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         if (data.containsKey('items')) {
+          final List<Book> fetchedBooks = data['items'].map<Book>((item) {
+            final volumeInfo = item['volumeInfo'];
+            final String title = volumeInfo['title'];
+            final List<String> authors =
+                volumeInfo.containsKey('authors') ? List<String>.from(volumeInfo['authors']) : [];
+            final String photoUrl = volumeInfo.containsKey('imageLinks') ? volumeInfo['imageLinks']['thumbnail'] : '';
+            final List<String> genres =
+                volumeInfo.containsKey('categories') ? List<String>.from(volumeInfo['categories']) : [];
+
+            return Book(
+              name: title,
+              photoUrl: photoUrl,
+              quantity: 0, // Adjust as needed
+              author: authors.isNotEmpty ? authors.first : 'Unknown',
+              genres: genres,
+            );
+          }).toList();
+
           setState(() {
-            books.addAll(data['items']);
+            books.addAll(fetchedBooks);
             startIndex += 20;
             isLoading = false;
           });
@@ -91,41 +114,49 @@ class _BookListState extends State<BookList> {
     }
   }
 
-  Future<void> _showQuantityDialog(String title, String photoUrl) async {
-    int? quantity;
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Enter Quantity for "$title"'),
-        content: TextField(
-          keyboardType: TextInputType.number,
-          onChanged: (value) {
-            quantity = int.tryParse(value);
-          },
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (quantity != null && quantity! > 0) {
-                _BookListToDatabase(title, photoUrl, quantity!);
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Add'),
-          ),
-        ],
+  Future<void> _showQuantityDialog(
+  String title, String photoUrl, String author, List<String> genres) async {
+  int? quantity;
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Enter Quantity for "$title"'),
+      content: TextField(
+        keyboardType: TextInputType.number,
+        onChanged: (value) {
+          quantity = int.tryParse(value);
+        },
       ),
-    );
-  }
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            if (quantity != null && quantity! > 0) {
+              _BookListToDatabase(
+                title,
+                photoUrl,
+                quantity!,
+                author,
+                genres,
+              );
+            }
+            Navigator.pop(context);
+          },
+          child: const Text('Add'),
+        ),
+      ],
+    ),
+  );
+}
 
+  // Add Book to Firestore with author and genre fields
   Future<void> _BookListToDatabase(
-    String title, String photoUrl, int quantity) async {
+    String title, String photoUrl, int quantity, String author, List<String> genres) async {
     final uuid = Uuid();
     try {
       // Check if the book already exists in the collection
@@ -139,15 +170,6 @@ class _BookListState extends State<BookList> {
         final DocumentSnapshot doc = existingBooks.docs.first;
         final int currentQuantity = doc['quantity'] ?? 0;
         await doc.reference.update({'quantity': currentQuantity + quantity});
-        for (int i = 0; i < quantity; i++) {
-          await _booksRef.doc(uuid.v4()).set({
-            'name': title,
-            'photoUrl': photoUrl,
-            'quantity': 1,
-            'isBorrowed': 0, // New book is not borrowed by default
-          });
-        }
-        print('Book quantity updated successfully!');
       } else {
         // Add the book if it doesn't exist
         for (int i = 0; i < quantity; i++) {
@@ -156,6 +178,8 @@ class _BookListState extends State<BookList> {
             'photoUrl': photoUrl,
             'quantity': 1,
             'isBorrowed': 0, // New book is not borrowed by default
+            'author': author,
+            'genres': genres,
           });
         }
         print('Book added successfully!');
@@ -178,24 +202,21 @@ class _BookListState extends State<BookList> {
           if (index == books.length) {
             return _buildLoadingIndicator();
           } else {
-            final book = books[index];
-            final title = book['volumeInfo']['title'];
-            final author = book['volumeInfo']['authors']?.join(', ') ?? 'Unknown';
-            final photoUrl = book.containsKey('volumeInfo') &&
-                    book['volumeInfo'].containsKey('imageLinks')
-                ? book['volumeInfo']['imageLinks']['thumbnail']
-                : '';
+            final Book book = books[index];
+            
 
             return ListTile(
-              title: Text(title),
-              subtitle: Text(author),
-              leading: _buildBookThumbnail(photoUrl),
-              trailing: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  _showQuantityDialog(title, photoUrl);
-                },
-              ),
+              title: Text(book.name),
+              subtitle: Text(book.author),
+              leading: _buildBookThumbnail(book.photoUrl),
+              trailing: 
+              IconButton(
+              icon: const Icon(Icons.add),
+            onPressed: () {
+              _showQuantityDialog(book.name, book.photoUrl, book.author, book.genres);
+            },
+          ),
+
             );
           }
         },
