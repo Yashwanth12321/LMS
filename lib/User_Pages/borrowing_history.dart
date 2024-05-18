@@ -1,148 +1,58 @@
-import 'package:flutter/material.dart';
-import 'package:lms/User_Pages/user_menu.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
-
-class BorrowHistory extends StatefulWidget {
+class BorrowHistory extends StatelessWidget {
   final String email;
 
   const BorrowHistory({required this.email, Key? key}) : super(key: key);
 
   @override
-  State<BorrowHistory> createState() => _BorrowHistoryState();
-}
-
-class _BorrowHistoryState extends State<BorrowHistory> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Borrow History"),
-        backgroundColor: Colors.blue[600],
+        title: const Text('Borrow History'),
       ),
-    body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('books').snapshots(),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-          print('Connection State: ${snapshot.connectionState}');
-          if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
-            return const Text('Something went wrong');
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            print("Loading");
-            return const CircularProgressIndicator();
-          }
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(email)
+            .collection('borrowed_books')
+            .snapshots(),
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            final books = snapshot.data!.docs
-                .where((doc) => doc.data().containsKey('TakenBy'))
-                .toList();
-
-            if (books.isEmpty) {
-              return const Center(
-                child: Text(
-                  "No books have been borrowed yet",
-                  style: TextStyle(fontSize: 20),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              itemCount: books.length,
-              itemBuilder: (context, index) {
-                final book = books[index].data();
-                final title = book['name'];
-                final photoUrl = book['photoUrl'];
-                final takenBy = book['TakenBy'];
-                final docId = books[index].id;
-
-                // Initialize lists to hold user IDs and borrowed dates
-                List<String> userIds = [];
-                List<DateTime?> borrowedDates = [];
-
-                if (takenBy != null && takenBy is Map<String, dynamic>) {
-                  takenBy.forEach((userId, userDetails) {
-                    if (userDetails is Map<String, dynamic> &&
-                        userDetails.containsKey('userID') &&
-                        userDetails.containsKey('BorrowDate')) {
-                      userIds.add(userDetails['userID']);
-                      // Attempt to convert Timestamp to DateTime
-                      try {
-                        DateTime? borrowedDate =
-                            userDetails['BorrowDate'].toDate();
-                        borrowedDates.add(borrowedDate);
-                        print('Borrowed Date: $borrowedDate');
-                      } catch (e) {
-                        // Log or handle the error appropriately
-                        print('Error converting BorrowDate to DateTime: $e');
-                      }
-                    }
-                  });
-                }
-                // Create a column of list tiles for each user taking the book
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Card(
-                    elevation: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: userIds.map((userId) {
-                        // Find the index of the userId in the userIds list
-                        int? userIdIndex = userIds.indexOf(userId);
-
-                        // Check if the userIdIndex is valid and corresponds to a DateTime in borrowedDates
-                        if (userIdIndex != null &&
-                            userIdIndex < borrowedDates.length) {
-                          DateTime? borrowedDate = borrowedDates[userIdIndex];
-
-                          return ListTile(
-                            leading: _buildBookThumbnail(photoUrl),
-                            title: Text(
-                              '$title Taken By: $userId',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                                'Borrowed Date: ${borrowedDate?.toLocal().toString().split(' ')[0]}'), // Display only the date
-                          );
-                        } else {
-                          // Handle the case where no corresponding DateTime is found for the userId
-                          return ListTile(
-                            leading: _buildBookThumbnail(photoUrl),
-                            title: Text(
-                              '$title Taken By: $userId',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                                'No Borrowed Date Found'), // Indicate that no date was found
-                          );
-                        }
-                      }).toList(),
-                    ),
-                  ),
-                );
-              },
-            );
           }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No borrow history found.'));
+          }
+          var borrowHistory = snapshot.data!.docs;
+          return ListView.builder(
+            itemCount: borrowHistory.length,
+            itemBuilder: (context, index) {
+              var history = borrowHistory[index].data() as Map<String, dynamic>;
+
+              // Convert the 'deadlineDate' field to a DateTime
+              Timestamp deadlineTimestamp = history['deadlineDate'] as Timestamp;
+              DateTime deadlineDateTime = deadlineTimestamp.toDate();
+
+              // Manually format the date string to display only date/month/year
+              String formattedDeadline = '${deadlineDateTime.day}/${deadlineDateTime.month}/${deadlineDateTime.year}';
+
+              // Safely handle the display of optional fields
+              return ListTile(
+                title: Text(history['name'] ?? 'No name'),
+                subtitle: Text('Deadline: $formattedDeadline'), // Display formatted date
+                leading: history['photoUrl'] != null
+                    ? Image.network(history['photoUrl'])
+                    : const Icon(Icons.book),
+              );
+            },
+          );
         },
       ),
     );
-  }
-    Widget _buildBookThumbnail(String? photoUrl) {
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Image.network(photoUrl);
-    } else {
-      return const Icon(Icons.book);
-    }
   }
 }
