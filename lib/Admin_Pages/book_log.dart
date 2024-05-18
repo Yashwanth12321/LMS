@@ -116,18 +116,18 @@ class _BookLogState extends State<BookLog> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () async {
-                                  await BookSearchDelegate
-                                      ._showEditQuantityDialog(
-                                    context,
-                                    title,
-                                    quantity,
-                                    docId,
-                                  );
-                                },
-                              ),
+                              // IconButton(
+                              //   icon: const Icon(Icons.edit),
+                              //   onPressed: () async {
+                              //     await BookSearchDelegate
+                              //         ._showEditQuantityDialog(
+                              //       context,
+                              //       title,
+                              //       quantity,
+                              //       docId,
+                              //     );
+                              //   },
+                              // ),
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () async {
