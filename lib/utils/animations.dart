@@ -8,7 +8,7 @@ class ShowUpAnimation extends StatefulWidget {
   /// GETTING THE ANIMATION DURATION
   int? delay;
 
-  ShowUpAnimation({required this.child, this.delay});
+  ShowUpAnimation({super.key, required this.child, this.delay});
 
   @override
   _ShowUpAnimationState createState() => _ShowUpAnimationState();
@@ -30,7 +30,7 @@ class _ShowUpAnimationState extends State<ShowUpAnimation>
     super.initState();
 
     _animController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     final curve =
         CurvedAnimation(curve: Curves.decelerate, parent: _animController);
     _animOffset =

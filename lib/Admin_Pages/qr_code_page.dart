@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart'; // Import the qr_flutter package
+// Import the qr_flutter package
 import 'package:barcode_widget/barcode_widget.dart'; // Import the barcode_widget package
 
 class QRCodePage extends StatelessWidget {
@@ -11,7 +11,7 @@ class QRCodePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('QR Code'),
+        title: const Text('QR Code'),
       ),
       body: Center(
         child: BarcodeWidget(

@@ -3,10 +3,12 @@ import 'package:lms/pages/login_page.dart';
 import 'package:lms/pages/signup_page.dart';
 
 void main() {
-  runApp(EZBorrowApp());
+  runApp(const EZBorrowApp());
 }
 
 class EZBorrowApp extends StatelessWidget {
+  const EZBorrowApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(

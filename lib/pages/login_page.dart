@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lms/pages/admin_home.dart';
 import 'package:lms/pages/home_page.dart';
-import 'package:lms/utils/animations.dart'; // Assuming this is where ShowUpAnimation is defined
+// Assuming this is where ShowUpAnimation is defined
 import '../utils/text_utils.dart'; // Assuming this is where TextUtil is defined
 
 class LoginPage extends StatefulWidget {
@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         height: double.infinity,
         width: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/bg2.jpeg'), // Fixed to bg2.jpeg
             fit: BoxFit.fill,

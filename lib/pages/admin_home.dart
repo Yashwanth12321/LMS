@@ -94,8 +94,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         int? userIdIndex = userIds.indexOf(userId);
 
                         // Check if the userIdIndex is valid and corresponds to a DateTime in borrowedDates
-                        if (userIdIndex != null &&
-                            userIdIndex < borrowedDates.length) {
+                        if (userIdIndex < borrowedDates.length) {
                           DateTime? borrowedDate = borrowedDates[userIdIndex];
 
                           return ListTile(
@@ -121,7 +120,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            subtitle: Text(
+                            subtitle: const Text(
                                 'No Borrowed Date Found'), // Indicate that no date was found
                           );
                         }

@@ -57,6 +57,7 @@ class _BookListState extends State<BookList> {
     fetchBooks();
   }
 
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -157,7 +158,7 @@ class _BookListState extends State<BookList> {
   // Add Book to Firestore with author and genre fields
   Future<void> _BookListToDatabase(
     String title, String photoUrl, int quantity, String author, List<String> genres) async {
-    final uuid = Uuid();
+    const uuid = Uuid();
     try {
       // Check if the book already exists in the collection
       final QuerySnapshot existingBooks = await _booksRef

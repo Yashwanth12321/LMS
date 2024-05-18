@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lms/Admin_Pages/qr_code_page.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class BookLog extends StatefulWidget {
   const BookLog({Key? key}) : super(key: key);
@@ -239,7 +238,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
       stream: FirebaseFirestore.instance
           .collection('books')
           .where('name', isGreaterThanOrEqualTo: query.toLowerCase())
-          .where('name', isLessThan: query.toLowerCase() + 'z')
+          .where('name', isLessThan: '${query.toLowerCase()}z')
           .snapshots(),
       builder: (context,
           AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {

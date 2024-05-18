@@ -37,6 +37,8 @@ dependencies:
   uuid: ^3.0.4
  
   barcode_widget: ^2.0.4
+  timezone: ^0.9.3
+
   
 
 
@@ -52,6 +54,8 @@ dependencies:
   image_picker: ^0.8.4+4
   animate_do: ^3.3.4
   flutter_local_notifications: ^17.1.2
+  rxdart: ^0.27.7
+
 
 dev_dependencies:
   flutter_test:

@@ -54,12 +54,12 @@ class _AddBookState extends State<AddBook> {
 
         // Add book data to Firestore for each item in the booksToAdd list
         final batch = FirebaseFirestore.instance.batch();
-        booksToAdd.forEach((bookData) {
+        for (var bookData in booksToAdd) {
           batch.set(
             FirebaseFirestore.instance.collection('books').doc(),
             bookData,
           );
-        });
+        }
         await batch.commit();
 
         // Clear form fields after submission

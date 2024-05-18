@@ -123,13 +123,13 @@ class _WishListState extends State<WishList> {
                     height: 50,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.broken_image);
+                      return const Icon(Icons.broken_image);
                     },
                   ),
                   title: Text(book['name']),
                   subtitle: Text('Author: ${book['author']}'),
                   trailing: IconButton(
-                    icon: Icon(Icons.favorite, color: Colors.red), // Heart icon
+                    icon: const Icon(Icons.favorite, color: Colors.red), // Heart icon
                     onPressed: () {
                       removeFromWishlist(book['name']);
                     },
