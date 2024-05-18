@@ -18,7 +18,7 @@ class QRCodePage extends StatelessWidget {
           // Use BarcodeWidget to display the barcode
           barcode: Barcode.code128(),
           data: qrCodeData,
-          width: 400.0,
+          width: 350.0,
           height: 100.0,
         ),
       ),
