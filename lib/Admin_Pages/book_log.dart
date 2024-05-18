@@ -45,17 +45,16 @@ class _BookLogState extends State<BookLog> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('books')
-            .where('isBorrowed', isEqualTo: 0)
-            .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+        stream: FirebaseFirestore.instance.collection('books').snapshots(),
+        builder: (context,
+            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            final List<DocumentSnapshot<Map<String, dynamic>>> books = snapshot.data!.docs;
+            final List<DocumentSnapshot<Map<String, dynamic>>> books =
+                snapshot.data!.docs;
             if (books.isEmpty) {
               return const Center(child: Text('No books found!'));
             }
@@ -84,10 +83,12 @@ class _BookLogState extends State<BookLog> {
               itemBuilder: (context, index) {
                 final title = sortedTitles[index];
                 final books = groupedBooks[title]!;
-                final totalQuantity = books.fold<int>(0, (sum, book) => sum + (book['quantity'] as int));
+                final totalQuantity = books.fold<int>(
+                    0, (sum, book) => sum + (book['quantity'] as int));
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Card(
                     elevation: 3,
                     child: ExpansionTile(
@@ -99,7 +100,8 @@ class _BookLogState extends State<BookLog> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: Text('Total Quantity: $totalQuantity'),//, Copies: ${books.length}
+                      subtitle: Text(
+                          'Total Quantity: $totalQuantity'), //, Copies: ${books.length}
                       children: books.map((book) {
                         final docId = book['docId'];
                         final quantity = book['quantity'];
@@ -113,7 +115,8 @@ class _BookLogState extends State<BookLog> {
                               IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () async {
-                                  await BookSearchDelegate._showEditQuantityDialog(
+                                  await BookSearchDelegate
+                                      ._showEditQuantityDialog(
                                     context,
                                     title,
                                     quantity,
@@ -124,7 +127,8 @@ class _BookLogState extends State<BookLog> {
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () async {
-                                  await BookSearchDelegate._deleteBook(context, docId);
+                                  await BookSearchDelegate._deleteBook(
+                                      context, docId, 'userId');
                                 },
                               ),
                               IconButton(
@@ -134,7 +138,8 @@ class _BookLogState extends State<BookLog> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => QRCodePage(qrCodeData: qrCodeData),
+                                      builder: (context) =>
+                                          QRCodePage(qrCodeData: qrCodeData),
                                     ),
                                   );
                                 },
@@ -219,23 +224,69 @@ class BookSearchDelegate extends SearchDelegate<String> {
   }
 
   @override
-  Widget buildSuggestions(BuildContext context) {
+  Widget buildResults(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('books')
+          .where('name', isGreaterThanOrEqualTo: query.toLowerCase())
+          .where('name', isLessThan: query.toLowerCase() + 'z')
           .snapshots(),
+      builder: (context,
+          AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final List<DocumentSnapshot<Map<String, dynamic>>> books =
+              snapshot.data!.docs;
+          if (books.isEmpty) {
+            return const Center(child: Text('No books found!'));
+          }
+          return ListView.builder(
+            itemCount: books.length,
+            itemBuilder: (context, index) {
+              final book = books[index];
+              final title = book['name'];
+              final quantity = book['quantity'];
+              final photoUrl = book['photoUrl'];
+              final docId = book.id;
+
+              return ListTile(
+                leading: _buildBookThumbnail(photoUrl),
+                title: Text(title),
+                subtitle: Text('Quantity: $quantity'),
+                onTap: () async {
+                  // Handle tapping on the book item
+                  await BookSearchDelegate._showEditQuantityDialog(
+                      context, title, quantity, docId);
+                },
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('books').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          final List<DocumentSnapshot<Map<String, dynamic>>> books = snapshot.data!.docs;
+          final List<DocumentSnapshot<Map<String, dynamic>>> books =
+              snapshot.data!.docs;
           if (books.isEmpty) {
             return Center(child: Text('No books found for "$query"'));
           }
 
-          final List<DocumentSnapshot<Map<String, dynamic>>> filteredBooks = books.where((book) {
+          final List<DocumentSnapshot<Map<String, dynamic>>> filteredBooks =
+              books.where((book) {
             final name = book['name'].toString().toLowerCase();
             return name.contains(query.toLowerCase());
           }).toList();
@@ -268,10 +319,12 @@ class BookSearchDelegate extends SearchDelegate<String> {
             itemBuilder: (context, index) {
               final title = sortedTitles[index];
               final books = groupedBooks[title]!;
-              final totalQuantity = books.fold<int>(0, (sum, book) => sum + (book['quantity'] as int));
+              final totalQuantity = books.fold<int>(
+                  0, (sum, book) => sum + (book['quantity'] as int));
 
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Card(
                   elevation: 3,
                   child: ExpansionTile(
@@ -283,7 +336,8 @@ class BookSearchDelegate extends SearchDelegate<String> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    subtitle: Text('Total Quantity: $totalQuantity'),//, Copies: ${books.length}
+                    subtitle: Text(
+                        'Total Quantity: $totalQuantity'), //, Copies: ${books.length}
                     children: books.map((book) {
                       final docId = book['docId'];
                       final quantity = book['quantity'];
@@ -297,7 +351,8 @@ class BookSearchDelegate extends SearchDelegate<String> {
                             IconButton(
                               icon: const Icon(Icons.edit),
                               onPressed: () async {
-                                await BookSearchDelegate._showEditQuantityDialog(
+                                await BookSearchDelegate
+                                    ._showEditQuantityDialog(
                                   context,
                                   title,
                                   quantity,
@@ -308,7 +363,8 @@ class BookSearchDelegate extends SearchDelegate<String> {
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                await BookSearchDelegate._deleteBook(context, docId);
+                                await BookSearchDelegate._deleteBook(
+                                    context, docId, 'userId');
                               },
                             ),
                             IconButton(
@@ -318,7 +374,8 @@ class BookSearchDelegate extends SearchDelegate<String> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => QRCodePage(qrCodeData: qrCodeData),
+                                    builder: (context) =>
+                                        QRCodePage(qrCodeData: qrCodeData),
                                   ),
                                 );
                               },
@@ -337,14 +394,11 @@ class BookSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-  @override
-  Widget buildResults(BuildContext context) {
-    return Container();
-  }
-
-  static Future<void> _showEditQuantityDialog(BuildContext context, String title, int currentQuantity, String docId) async {
+  static Future<void> _showEditQuantityDialog(BuildContext context,
+      String title, int currentQuantity, String docId) async {
     int? newQuantity;
-    TextEditingController controller = TextEditingController(text: currentQuantity.toString());
+    TextEditingController controller =
+        TextEditingController(text: currentQuantity.toString());
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -362,6 +416,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
           TextButton(
             onPressed: () {
               if (newQuantity != null && newQuantity! > 0) {
+                // Call a function to update quantity in Firestore
                 _updateBookQuantity(docId, newQuantity!);
               }
               Navigator.pop(context);
@@ -384,7 +439,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
     }
   }
 
-  static Future<void> _deleteBook(BuildContext context, String docId) async {
+  static Future<void> _deleteBook(BuildContext context, String docId, String userId) async {
     final confirmation = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -405,8 +460,10 @@ class BookSearchDelegate extends SearchDelegate<String> {
 
     if (confirmation == true) {
       await _removeFromFirestore(docId);
+      // Implement logic to add the book to the user's account here
+      // For example:
+      // await _addToUserAccount(userId, docId);
     }
-    return;
   }
 
   static Future<void> _removeFromFirestore(String docId) async {
@@ -420,9 +477,18 @@ class BookSearchDelegate extends SearchDelegate<String> {
 
   Widget _buildBookThumbnail(String? photoUrl) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Image.network(photoUrl);
+      return Image.network(
+        photoUrl,
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+      );
     } else {
-      return const Icon(Icons.book); // Placeholder for missing image
+      return const SizedBox(
+        width: 50,
+        height: 50,
+        child: Icon(Icons.book),
+      );
     }
   }
 }
