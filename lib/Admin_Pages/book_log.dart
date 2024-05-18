@@ -65,6 +65,7 @@ class _BookLogState extends State<BookLog> {
               final title = book['name'];
               final quantity = book['quantity'];
               final photoUrl = book['photoUrl'];
+              final isBorrowed = book['isBorrowed'];
               final docId = book.id;
               if (!groupedBooks.containsKey(title)) {
                 groupedBooks[title] = [];
@@ -72,6 +73,7 @@ class _BookLogState extends State<BookLog> {
               groupedBooks[title]!.add({
                 'quantity': quantity,
                 'photoUrl': photoUrl,
+                'isBorrowed': isBorrowed,
                 'docId': docId,
               });
             }
@@ -100,15 +102,18 @@ class _BookLogState extends State<BookLog> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: Text(
-                          'Total Quantity: $totalQuantity'), //, Copies: ${books.length}
+                      subtitle: Text('Total Quantity: $totalQuantity'),
                       children: books.map((book) {
                         final docId = book['docId'];
                         final quantity = book['quantity'];
                         final photoUrl = book['photoUrl'];
+                        final isBorrowed = book['isBorrowed'];
                         return ListTile(
                           leading: _buildBookThumbnail(photoUrl),
                           title: Text('Quantity: $quantity'),
+                          subtitle: isBorrowed == 1
+                              ? const Text('Status: Issued')
+                              : const Text('Status: Available'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -301,6 +306,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
             final title = book['name'];
             final quantity = book['quantity'];
             final photoUrl = book['photoUrl'];
+            final isBorrowed = book['isBorrowed'];
             final docId = book.id;
             if (!groupedBooks.containsKey(title)) {
               groupedBooks[title] = [];
@@ -308,6 +314,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
             groupedBooks[title]!.add({
               'quantity': quantity,
               'photoUrl': photoUrl,
+              'isBorrowed': isBorrowed,
               'docId': docId,
             });
           }
@@ -336,15 +343,18 @@ class BookSearchDelegate extends SearchDelegate<String> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    subtitle: Text(
-                        'Total Quantity: $totalQuantity'), //, Copies: ${books.length}
+                    subtitle: Text('Total Quantity: $totalQuantity'),
                     children: books.map((book) {
                       final docId = book['docId'];
                       final quantity = book['quantity'];
                       final photoUrl = book['photoUrl'];
+                      final isBorrowed = book['isBorrowed'];
                       return ListTile(
                         leading: _buildBookThumbnail(photoUrl),
                         title: Text('Quantity: $quantity'),
+                        subtitle: isBorrowed == 1
+                            ? const Text('Status: Issued')
+                            : const Text('Status: Available'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
