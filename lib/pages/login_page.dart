@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lms/pages/WelcomePage.dart';
+import 'package:lms/User_Pages/borrowing_history.dart';
+import 'package:lms/User_Pages/user_menu.dart';
+import 'package:lms/pages/admin_home.dart'; 
+import 'package:lms/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -28,21 +31,27 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomePage()),
-      );
+
+      if (_email.text == "admin@gmail.com") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminHomePage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+            MaterialPageRoute(builder: (context) => HomePage(email: _email.text)),
+        );
+      }
     } on FirebaseAuthException {
       setState(() {
         isLoading = false;
       });
-      String errorMessage = "Invalid Username or Password. Please try again.";
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            errorMessage,
-            style: const TextStyle(color: Colors.white),
+        const SnackBar(
+          content: Text("Invalid Username or Password. Please try again.",
+            style: TextStyle(color: Colors.white),
           ),
         ),
       );
@@ -56,8 +65,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login Page'),
-        backgroundColor: Colors.transparent,
+        title: const Text('Login'),
+        backgroundColor: const Color.fromARGB(255, 0, 255, 191),
         elevation: 0.0,
       ),
       body: Center(
@@ -90,10 +99,13 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: const InputDecoration(labelText: "Password"),
                 ),
                 const SizedBox(height: 20.0),
+                const Text("\n"),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       signInWithEmailAndPassword();
+                        
+                    
                     }
                   },
                   child: isLoading
