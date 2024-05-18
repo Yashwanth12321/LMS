@@ -11,71 +11,76 @@ class AddBook extends StatefulWidget {
 class _AddBookState extends State<AddBook> {
   final _formKey = GlobalKey<FormState>();
   String? _bookName;
+  String? _author;
   int? _quantity;
   String? _bookUrl = ''; // Default photo URL
+  List<String>? _genres = []; // List to store genres
   int? _isBorrowed;
-Future<void> _submitForm() async {
-  if (_formKey.currentState!.validate()) {
-    _formKey.currentState!.save();
-    // If book URL is not provided, save a default photo URL
-    if (_bookUrl == null || _bookUrl!.isEmpty) {
-      _bookUrl = 'https://picsum.photos/200/300.jpg';
-    }
-    try {
-      // Check if a book with the same name already exists
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('books')
-          .where('name', isEqualTo: _bookName)
-          .get();
-      if (querySnapshot.docs.isNotEmpty) {
-        // Book with the same name already exists, show error message
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      // If book URL is not provided, save a default photo URL
+      if (_bookUrl == null || _bookUrl!.isEmpty) {
+        _bookUrl = 'https://picsum.photos/200/300.jpg';
+      }
+      try {
+        // Check if a book with the same name already exists
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('books')
+            .where('name', isEqualTo: _bookName)
+            .get();
+        if (querySnapshot.docs.isNotEmpty) {
+          // Book with the same name already exists, show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('A book with the same name already exists!'),
+            ),
+          );
+          return; // Exit the method
+        }
+
+        final List<Map<String, dynamic>> booksToAdd = List.generate(
+          _quantity!,
+          (index) => {
+            'name': _bookName,
+            'author': _author,
+            'quantity': 1, // Each book starts with a quantity of 1
+            'photoUrl': _bookUrl,
+            'genres': _genres, // Add genres to book data
+            'isBorrowed': 0, // New book is not borrowed by default
+          },
+        );
+
+        // Add book data to Firestore for each item in the booksToAdd list
+        final batch = FirebaseFirestore.instance.batch();
+        booksToAdd.forEach((bookData) {
+          batch.set(
+            FirebaseFirestore.instance.collection('books').doc(),
+            bookData,
+          );
+        });
+        await batch.commit();
+
+        // Clear form fields after submission
+        _formKey.currentState!.reset();
+        // Show a confirmation snackbar
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('A book with the same name already exists!'),
+            content: Text('Books added successfully!!!'),
           ),
         );
-        return; // Exit the method
-      }
-
-      final List<Map<String, dynamic>> booksToAdd = List.generate(
-        _quantity!,
-        (index) => {
-          'name': _bookName,
-          'quantity': 1, // Each book starts with a quantity of 1
-          'photoUrl': _bookUrl,
-          'isBorrowed': 0, // New book is not borrowed by default
-        },
-      );
-
-      // Add book data to Firestore for each item in the booksToAdd list
-      final batch = FirebaseFirestore.instance.batch();
-      booksToAdd.forEach((bookData) {
-        batch.set(
-          FirebaseFirestore.instance.collection('books').doc(),
-          bookData,
+      } catch (error) {
+        print('Error adding book: $error');
+        // Show error snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to add books. Please try again.'),
+          ),
         );
-      });
-      await batch.commit();
-
-      // Clear form fields after submission
-      _formKey.currentState!.reset();
-      // Show a confirmation snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Books added successfully!!!'),
-        ),
-      );
-    } catch (error) {
-      print('Error adding book: $error');
-      // Show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to add books. Please try again.'),
-        ),
-      );
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +145,32 @@ Future<void> _submitForm() async {
                 ),
                 child: TextFormField(
                   decoration: const InputDecoration(
+                    labelText: 'Author',
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: InputBorder.none,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the author name';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _author = value;
+                  },
+                ),
+              ),
+              const SizedBox(height: 25),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: TextFormField(
+                  decoration: const InputDecoration(
                     labelText: 'Quantity',
                     contentPadding: EdgeInsets.all(15.0),
                     border: InputBorder.none,
@@ -156,7 +187,7 @@ Future<void> _submitForm() async {
                   },
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 25),
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -173,6 +204,26 @@ Future<void> _submitForm() async {
                   ),
                   onSaved: (value) {
                     _bookUrl = value;
+                  },
+                ),
+              ),
+              const SizedBox(height: 25),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Genres (comma-separated)',
+                    contentPadding: EdgeInsets.all(15.0),
+                    border: InputBorder.none,
+                  ),
+                  onSaved: (value) {
+                    _genres = value!.split(',').map((genre) => genre.trim()).toList();
                   },
                 ),
               ),
