@@ -22,34 +22,16 @@ class AuthPageUser extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'EZBorrow',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 28,
-                fontFamily: 'Roboto',
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.black,
-        elevation: 0,
-      ),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/images/cover.jpeg"),
-            fit: BoxFit.cover,
+            fit: BoxFit.fitHeight,
           ),
         ),
         child: Center(
           child: Container(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withOpacity(0.3),
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -57,9 +39,10 @@ class AuthPageUser extends StatelessWidget {
                 const Text(
                   'Welcome to the Library App!',
                   style: TextStyle(
-                    fontSize: 28.0,
+                    fontSize: 30.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    backgroundColor: Color.fromARGB(255, 58, 63, 65),
                     fontFamily: 'Montserrat',
                     shadows: [
                       Shadow(
@@ -114,7 +97,7 @@ class AuthPageUser extends StatelessWidget {
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all<Color>(
-                      Colors.greenAccent,
+                      const Color.fromARGB(255, 255, 128, 0),
                     ),
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
@@ -123,7 +106,7 @@ class AuthPageUser extends StatelessWidget {
                     ),
                   ),
                   child: Container(
-                    width: 120.0, // Adjust the width as needed
+                    width: 120.0,
                     alignment: Alignment.center,
                     child: const Text(
                       'Sign Up',
