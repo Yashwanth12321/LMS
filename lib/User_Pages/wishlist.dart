@@ -54,27 +54,42 @@ class _WishListState extends State<WishList> {
   }
 
   Future<void> removeFromWishlist(String bookName) async {
-    try {
-      final userDocRef =
-          FirebaseFirestore.instance.collection('users').doc(widget.email);
-      final wishlistDocRef = userDocRef.collection('wishlist').doc(bookName);
-      
-      // Get the current wishlist from the user's document
-      final userDoc = await userDocRef.get();
-      final List<dynamic> currentWishlist = userDoc.get('wishlist');
+  try {
+    final userDocRef =
+        FirebaseFirestore.instance.collection('users').doc(widget.email);
+    final wishlistDocRef = userDocRef.collection('wishlist').doc(bookName);
+    
+    // Get the current wishlist from the user's document
+    final userDoc = await userDocRef.get();
+    await _removeFromFirestore(userDoc, wishlistDocRef);
 
-      // Remove the book from the current wishlist
-      currentWishlist.remove(bookName);
-
-      // Update the wishlist field in the user's document
-      await userDocRef.update({'wishlist': currentWishlist});
-
-      // Delete the document from the wishlist collection
-      await wishlistDocRef.delete();
-    } catch (error) {
-      print('Error removing book from wishlist: $error');
-    }
+    // Update the UI by removing the book from the list
+    setState(() {
+      uniqueWishlist.removeWhere((book) => book['name'] == bookName);
+    });
+  } catch (error) {
+    print('Error removing book from wishlist: $error');
   }
+}
+
+Future<void> _removeFromFirestore(DocumentSnapshot userDoc, DocumentReference wishlistDocRef) async {
+  try {
+    final List<dynamic> currentWishlist = userDoc.get('wishlist');
+
+    // Remove the book from the current wishlist
+    currentWishlist.removeWhere((book) => book == wishlistDocRef.id);
+
+    // Update the wishlist field in the user's document
+    await userDoc.reference.update({'wishlist': currentWishlist});
+
+    // Delete the document from the wishlist collection
+    await wishlistDocRef.delete();
+  } catch (error) {
+    print('Error removing book from Firestore: $error');
+  }
+}
+
+  
 
   @override
   Widget build(BuildContext context) {
