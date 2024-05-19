@@ -255,11 +255,25 @@ class _HomePageState extends State<HomePage> {
         'deadlineDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 45))),
       });
 
+    final wishListCollection = userDocRef.collection('wishlist');
+    final dummywish = wishListCollection.doc('dummywish');
+    await dummywish.set({});
       // Update isBorrowed field to 1 in the books collection
-      await FirebaseFirestore.instance.collection('books').doc(bookId).update({
-        'isBorrowed': 1,
-      });
-        LocalNotification.showSimpleNotification(title: "borrowed", body: 'you borrowed ${bookData['name']}', payload: 'you borrowed ${bookData['name']}');
+
+      if (bookData['isBorrowed'] == 0) {
+        await FirebaseFirestore.instance.collection('books').doc(bookId).update({
+          'isBorrowed': 1,
+          'taken_by': widget.email,
+        });
+      }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Book "${bookData['name']}" is already taken')),
+        );
+        return;
+      }
+      
+      LocalNotification.showSimpleNotification(title: "borrowed", body: 'you borrowed ${bookData['name']}', payload: 'you borrowed ${bookData['name']}');
       print('Book added to user successfully!');
       LocalNotification.showScheduleNotification1(title: "borrowed", body: 'its been 5 seconds you borrowed ${bookData['name']}', payload: 'its been 5 sec you borrowed ${bookData['name']}', remaning: 5);
 
@@ -300,7 +314,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 
   @override
   Widget build(BuildContext context) {

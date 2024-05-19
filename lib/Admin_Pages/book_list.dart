@@ -174,7 +174,7 @@ class _BookListState extends State<BookList> {
       } else {
         // Add the book if it doesn't exist
         for (int i = 0; i < quantity; i++) {
-          await _booksRef.doc(uuid.v4()).set({
+          await _booksRef.doc().set({
             'name': title,
             'photoUrl': photoUrl,
             'quantity': 1,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lms/Admin_Pages/book_log.dart';
 import 'package:lms/Admin_Pages/add_book.dart';
 import 'package:lms/Admin_Pages/book_list.dart';
+import 'package:lms/Admin_Pages/return.dart';
 
 import 'package:lms/pages/admin_home.dart';
 
@@ -83,6 +84,16 @@ class AdminMenu extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AddBook()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Return ', style: TextStyle(fontSize: 14)),
+            leading: const Icon(Icons.add),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ReturnPage()),
               );
             },
           ),
