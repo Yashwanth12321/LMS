@@ -306,48 +306,75 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> addBookToUser(
-      String bookId, Map<String, dynamic> bookData) async {
-    try {
-      final usersRef = FirebaseFirestore.instance.collection('users');
-      final userDocRef = usersRef.doc(widget.email);
+ Future<void> addBookToUser(
+  String bookId, Map<String, dynamic> bookData) async {
+  try {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    final userDocRef = usersRef.doc(widget.email);
 
-      await userDocRef.collection('borrowed_books').doc(bookId).set({
-        'name': bookData['name'],
-        'photoUrl': bookData['photoUrl'],
-        'borrowedDate': Timestamp.now(),
-        'deadlineDate':
-            Timestamp.fromDate(DateTime.now().add(const Duration(days: 45))),
-        'bookId': bookId,
-      });
-
-      // Update isBorrowed field to 1 in the books collection
-      await FirebaseFirestore.instance.collection('books').doc(bookId).update({
-        'isBorrowed': 1,
-      });
-
-       LocalNotification.showSimpleNotification(title: "borrowed", body: 'you borrowed ${bookData['name']}', payload: 'you borrowed ${bookData['name']}');
-      print('Book added to user successfully!');
-      LocalNotification.showScheduleNotification1(title: "borrowed", body: 'its been 5 seconds you borrowed ${bookData['name']}', payload: 'its been 5 sec you borrowed ${bookData['name']}', remaning: 5);
-
-    
-      LocalNotification.showScheduleNotification(title: "borrowed", body: 'due today for ${bookData['name']}', payload: 'due today for ${bookData['name']}', remaning: 29);
-
-
-      print('Book added to user successfully!');
+    // Check if the book is already borrowed
+    if (bookData['isBorrowed'] == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Book "${bookData['name']}" added to your borrowed list!')),
+        SnackBar(content: Text('Book "${bookData['name']}" is already taken')),
       );
-    } catch (error) {
-      print('Error adding book to user: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Failed to add book to your borrowed list.')),
-      );
+      return;
     }
+
+    // Mark the book as borrowed and set the user who borrowed it
+    await userDocRef.collection('borrowed_books').doc(bookId).set({
+      'name': bookData['name'],
+      'photoUrl': bookData['photoUrl'],
+      'borrowedDate': Timestamp.now(),
+      'deadlineDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 45))),
+      'bookId': bookId,
+    });
+    await FirebaseFirestore.instance.collection('books').doc(bookId).update({
+      'isBorrowed': 1,
+      'taken_by': widget.email,
+    });
+
+    // Show notifications
+    LocalNotification.showSimpleNotification(
+      title: "Borrowed",
+      body: 'You borrowed ${bookData['name']}',
+      payload: 'You borrowed ${bookData['name']}'
+    );
+
+    // Show a scheduled notification after 5 seconds
+    LocalNotification.showScheduleNotification1(
+      title: "Borrowed",
+      body: 'It\'s been 5 seconds since you borrowed ${bookData['name']}',
+      payload: 'It\'s been 5 seconds since you borrowed ${bookData['name']}',
+      remaning: 5
+    );
+
+    // Show a scheduled notification for due date
+    LocalNotification.showScheduleNotification(
+      title: "Borrowed",
+      body: 'Due today for ${bookData['name']}',
+      payload: 'Due today for ${bookData['name']}',
+      remaning: 29
+    );
+
+    // Show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Book "${bookData['name']}" added to your borrowed list!'
+        ),
+      ),
+    );
+  } catch (error) {
+    print('Error adding book to user: $error');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Failed to add book to your borrowed list.'),
+      ),
+    );
   }
+}
+
+
 
   Future<void> addBookToWishlist(
       String bookId, Map<String, dynamic> bookData) async {
