@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  bool _isPasswordVisible = false;
 
   Future<void> signInWithEmailAndPassword() async {
     try {
@@ -66,14 +67,14 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           // Background image
           Image.asset(
-            'assets/images/loginicon.jpg', // Fixed to bg2.jpeg
+            'assets/images/bg1.jpeg', // Fixed to bg2.jpeg
             fit: BoxFit.fill,
             width: double.infinity,
             height: double.infinity,
           ),
           // Blurred and semi-transparent overlay
           BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0),
+            filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
             child: Container(
               color: Colors.black.withOpacity(0.3),
             ),
@@ -87,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white),
                 borderRadius: BorderRadius.circular(15),
-                color: Colors.white.withOpacity(0.9), // Changed color to white with opacity
+                color: Colors.white.withOpacity(0.5), // Changed color to white with opacity
               ),
               child: Padding(
                 padding: const EdgeInsets.all(25),
@@ -148,12 +149,19 @@ class _LoginPageState extends State<LoginPage> {
                         child: TextFormField(
                           controller: _password,
                           cursorColor: Colors.black,
-                          obscureText: true,
+                          obscureText: !_isPasswordVisible,
                           style: const TextStyle(color: Colors.black),
-                          decoration: const InputDecoration(
-                            suffixIcon: Icon(
-                              Icons.lock,
-                              color: Colors.black,
+                          decoration: InputDecoration(
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                              child: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.black,
+                              ),
                             ),
                             fillColor: Colors.black,
                             border: InputBorder.none,

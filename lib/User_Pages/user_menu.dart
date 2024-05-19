@@ -42,18 +42,43 @@ class _UserMenuState extends State<UserMenu> {
 
   @override
   Widget build(BuildContext context) {
+    // Extract the username from the email
+    String username = widget.email.split('@')[0];
+
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.5), // Translucent black color
+                  BlendMode.srcOver,
+                ),
+                image: const AssetImage('assets/images/hiuser.jpg'),
+              ),
             ),
-            child: Text('Menu Bar', style: TextStyle(fontSize: 28)),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: Text(
+                    'Hello $username',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           ListTile(
-            title: const Text('Home', style: TextStyle(fontSize: 14)),
             leading: const Icon(Icons.home_filled),
+            title: const Text('Home', style: TextStyle(fontSize: 14)),
             onTap: () {
               Navigator.push(
                 context,
@@ -62,8 +87,8 @@ class _UserMenuState extends State<UserMenu> {
             },
           ),
           ListTile(
-            title: const Text('Borrow History', style: TextStyle(fontSize: 14)),
             leading: const Icon(Icons.grading_sharp),
+            title: const Text('Borrow History', style: TextStyle(fontSize: 14)),
             onTap: () {
               Navigator.push(
                 context,
@@ -72,18 +97,18 @@ class _UserMenuState extends State<UserMenu> {
             },
           ),
           ListTile(
-            title: const Text('Wishlist', style: TextStyle(fontSize: 14)),
             leading: const Icon(Icons.favorite),
+            title: const Text('Wishlist', style: TextStyle(fontSize: 14)),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => WishList(email: widget.email,)),
+                MaterialPageRoute(builder: (context) => WishList(email: widget.email)),
               );
             },
           ),
           ListTile(
-            title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
             leading: const Icon(Icons.logout),
+            title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
             onTap: () async {
               await _confirmSignOut(context);
             },

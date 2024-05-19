@@ -15,6 +15,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isLoading = false;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false; // Added this line
 
   Future<void> signUpWithEmailAndPassword() async {
     try {
@@ -58,7 +59,7 @@ class _SignUpPageState extends State<SignUpPage> {
       body: Container(
         height: double.infinity,
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/bg1.jpeg'), // Fixed to bg1.jpeg
             fit: BoxFit.fill,
@@ -72,7 +73,7 @@ class _SignUpPageState extends State<SignUpPage> {
           decoration: BoxDecoration(
             border: Border.all(color: Colors.white),
             borderRadius: BorderRadius.circular(15),
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.white.withOpacity(0.5), // Change color to white with opacity
           ),
           child: Padding(
             padding: const EdgeInsets.all(25),
@@ -87,27 +88,29 @@ class _SignUpPageState extends State<SignUpPage> {
                       text: "Sign Up",
                       weight: true,
                       size: 30,
+                      color: Colors.black, // Text color changed to black
                     ),
                   ),
                   const Spacer(),
                   TextUtil(
                     text: "Email",
+                    color: Colors.black, // Text color changed to black
                   ),
                   Container(
                     height: 35,
                     decoration: const BoxDecoration(
-                      border:
-                          Border(bottom: BorderSide(color: Colors.white)),
+                      border: Border(bottom: BorderSide(color: Colors.black)),
                     ),
                     child: TextFormField(
                       controller: _emailController,
-                      style: const TextStyle(color: Colors.white),
+                      cursorColor: Colors.black,
+                      style: const TextStyle(color: Colors.black),
                       decoration: const InputDecoration(
                         suffixIcon: Icon(
                           Icons.mail,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
-                        fillColor: Colors.white,
+                        fillColor: Colors.black,
                         border: InputBorder.none,
                       ),
                       validator: (text) {
@@ -121,23 +124,31 @@ class _SignUpPageState extends State<SignUpPage> {
                   const Spacer(),
                   TextUtil(
                     text: "Password",
+                    color: Colors.black, // Text color changed to black
                   ),
                   Container(
                     height: 35,
                     decoration: const BoxDecoration(
-                      border:
-                          Border(bottom: BorderSide(color: Colors.white)),
+                      border: Border(bottom: BorderSide(color: Colors.black)),
                     ),
                     child: TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        suffixIcon: Icon(
-                          Icons.lock,
-                          color: Colors.white,
+                      obscureText: !_isPasswordVisible, // Updated this line
+                      cursorColor: Colors.black,
+                      style: const TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        suffixIcon: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                          child: Icon(
+                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.black,
+                          ),
                         ),
-                        fillColor: Colors.white,
+                        fillColor: Colors.black,
                         border: InputBorder.none,
                       ),
                       validator: (text) {
@@ -159,17 +170,17 @@ class _SignUpPageState extends State<SignUpPage> {
                       height: 40,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(30),
                       ),
                       alignment: Alignment.center,
                       child: isLoading
                           ? const CircularProgressIndicator(
-                              color: Colors.black,
+                              color: Colors.white,
                             )
                           : TextUtil(
                               text: "Sign Up",
-                              color: Colors.black,
+                              color: Colors.white,
                             ),
                     ),
                   ),

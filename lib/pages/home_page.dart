@@ -385,6 +385,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        title: const Text('EZBorrow'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -403,8 +404,8 @@ class _HomePageState extends State<HomePage> {
                 decoration: const BoxDecoration(
                   color: Colors.blue,
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(60.0),
-                    bottomRight: Radius.circular(60.0),
+                    topLeft: Radius.circular(60.0),
+                    topRight: Radius.circular(60.0),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),

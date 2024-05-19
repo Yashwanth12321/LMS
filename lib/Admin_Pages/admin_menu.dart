@@ -4,7 +4,6 @@ import 'package:lms/Admin_Pages/book_log.dart';
 import 'package:lms/Admin_Pages/add_book.dart';
 import 'package:lms/Admin_Pages/book_list.dart';
 import 'package:lms/Admin_Pages/return.dart';
-
 import 'package:lms/pages/admin_home.dart';
 
 class AdminMenu extends StatelessWidget {
@@ -35,17 +34,20 @@ class AdminMenu extends StatelessWidget {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
         children: <Widget>[
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              image: DecorationImage(
+                image: const AssetImage('assets/images/adminhome.jpg'), // Replace 'assets/images/adminhome.jpg' with your actual asset image path
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(Colors.black.withOpacity(1.0), BlendMode.dstATop), // Make the image translucent
+              ),
             ),
-            child: Text('Menu Bar', style: TextStyle(fontSize: 28)),
+            child: const Text('Hello Admin', style: TextStyle(fontSize: 28, color: Colors.white)), // Change the text to "Hello Admin"
           ),
           ListTile(
             title: const Text('Home', style: TextStyle(fontSize: 14)),
@@ -89,7 +91,7 @@ class AdminMenu extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Return ', style: TextStyle(fontSize: 14)),
-            leading: const Icon(Icons.add),
+            leading: const Icon(Icons.reset_tv_rounded),
             onTap: () {
               Navigator.push(
                 context,
