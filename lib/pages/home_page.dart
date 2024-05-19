@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:lms/User_Pages/user_menu.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';  
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:flutter_local_notifications/src/platform_specifics/android/enums.dart';
-import 'package:timezone/timezone.dart' as tz;
 
+import 'package:timezone/timezone.dart' as tz;
 
 class HomePage extends StatefulWidget {
   final String email;
@@ -41,7 +42,7 @@ final DarwinInitializationSettings initializationSettingsDarwin =
     DarwinInitializationSettings(
         onDidReceiveLocalNotification: (id,title,body,payload)=>null);
 final LinuxInitializationSettings initializationSettingsLinux =
-    LinuxInitializationSettings(
+    const LinuxInitializationSettings(
         defaultActionName: 'Open notification');
 final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
@@ -162,6 +163,66 @@ final InitializationSettings initializationSettings = InitializationSettings(
 
 class _HomePageState extends State<HomePage> {
   String _scanResult = "";
+  int totalBorrows = 0;
+  int totalOverdues = 0;
+  List<Map<String, dynamic>> randomBooks = [];
+  TextEditingController _textEditingController = TextEditingController();
+  bool isSearchActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserStats();
+    fetchRandomBooks();
+  }
+
+  Future<void> fetchUserStats() async {
+    try {
+      final userBorrowedBooks = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.email)
+          .collection('borrowed_books')
+          .get();
+
+      setState(() {
+        totalBorrows = userBorrowedBooks.docs.length;
+        totalOverdues = userBorrowedBooks.docs
+            .where((doc) => (doc['deadlineDate'] as Timestamp)
+                .toDate()
+                .isBefore(DateTime.now()))
+            .length;
+      });
+    } catch (error) {
+      print('Error fetching user stats: $error');
+    }
+  }
+
+  Future<void> fetchRandomBooks() async {
+    try {
+      final booksCollection =
+          await FirebaseFirestore.instance.collection('books').get();
+      final allBooks = booksCollection.docs
+          .map((doc) => doc.data())
+          .toList();
+
+      // Filter out unique books by name
+      Set<String> seenNames = {};
+      List<Map<String, dynamic>> uniqueBooks = [];
+      for (var book in allBooks) {
+        if (!seenNames.contains(book['name'])) {
+          seenNames.add(book['name']);
+          uniqueBooks.add(book);
+        }
+        if (uniqueBooks.length == 7) break; // Only take 7 unique books
+      }
+
+      setState(() {
+        randomBooks = uniqueBooks;
+      });
+    } catch (error) {
+      print('Error fetching random books: $error');
+    }
+  }
 
   Future<void> scanCode() async {
     String barcodeScanRes;
@@ -185,8 +246,10 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> showConfirmationDialog(String bookId) async {
     try {
-      final DocumentSnapshot bookDoc =
-          await FirebaseFirestore.instance.collection('books').doc(bookId).get();
+      final DocumentSnapshot bookDoc = await FirebaseFirestore.instance
+          .collection('books')
+          .doc(bookId)
+          .get();
 
       if (bookDoc.exists) {
         final bookData = bookDoc.data() as Map<String, dynamic>;
@@ -243,7 +306,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> addBookToUser(String bookId, Map<String, dynamic> bookData) async {
+  Future<void> addBookToUser(
+      String bookId, Map<String, dynamic> bookData) async {
     try {
       final usersRef = FirebaseFirestore.instance.collection('users');
       final userDocRef = usersRef.doc(widget.email);
@@ -252,89 +316,334 @@ class _HomePageState extends State<HomePage> {
         'name': bookData['name'],
         'photoUrl': bookData['photoUrl'],
         'borrowedDate': Timestamp.now(),
-        'deadlineDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 45))),
+        'deadlineDate':
+            Timestamp.fromDate(DateTime.now().add(const Duration(days: 45))),
+        'bookId': bookId,
       });
 
-    final wishListCollection = userDocRef.collection('wishlist');
-    final dummywish = wishListCollection.doc('dummywish');
-    await dummywish.set({});
       // Update isBorrowed field to 1 in the books collection
+      await FirebaseFirestore.instance.collection('books').doc(bookId).update({
+        'isBorrowed': 1,
+      });
 
-      if (bookData['isBorrowed'] == 0) {
-        await FirebaseFirestore.instance.collection('books').doc(bookId).update({
-          'isBorrowed': 1,
-          'taken_by': widget.email,
-        });
-      }
-      else{
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Book "${bookData['name']}" is already taken')),
-        );
-        return;
-      }
-      
-      LocalNotification.showSimpleNotification(title: "borrowed", body: 'you borrowed ${bookData['name']}', payload: 'you borrowed ${bookData['name']}');
+       LocalNotification.showSimpleNotification(title: "borrowed", body: 'you borrowed ${bookData['name']}', payload: 'you borrowed ${bookData['name']}');
       print('Book added to user successfully!');
       LocalNotification.showScheduleNotification1(title: "borrowed", body: 'its been 5 seconds you borrowed ${bookData['name']}', payload: 'its been 5 sec you borrowed ${bookData['name']}', remaning: 5);
 
     
       LocalNotification.showScheduleNotification(title: "borrowed", body: 'due today for ${bookData['name']}', payload: 'due today for ${bookData['name']}', remaning: 29);
 
+
+      print('Book added to user successfully!');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Book "${bookData['name']}" added to your borrowed list!')),
+        SnackBar(
+            content: Text(
+                'Book "${bookData['name']}" added to your borrowed list!')),
       );
     } catch (error) {
       print('Error adding book to user: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add book to your borrowed list.')),
+        const SnackBar(
+            content: Text('Failed to add book to your borrowed list.')),
       );
     }
   }
 
-  Future<void> addBookToWishlist(String bookId, Map<String, dynamic> bookData) async {
-  try {
-    final usersRef = FirebaseFirestore.instance.collection('users');
-    final userDocRef = usersRef.doc(widget.email);
+  Future<void> addBookToWishlist(
+      String bookId, Map<String, dynamic> bookData) async {
+    try {
+      final usersRef = FirebaseFirestore.instance.collection('users');
+      final userDocRef = usersRef.doc(widget.email);
 
-    await userDocRef.collection('wishlist').doc(bookId).set({
-      'name': bookData['name'],
-      'author': bookData['author'],
-      'photoUrl': bookData['photoUrl'], // Adding photo URL to the wishlist
-      'addedDate': Timestamp.now(),
-    });
+      await userDocRef.collection('wishlist').doc(bookId).set({
+        'name': bookData['name'],
+        'author': bookData['author'],
+        'photoUrl': bookData['photoUrl'],
+        'addedDate': Timestamp.now(),
+        'bookId': bookId,
+      });
 
-    print('Book added to wishlist successfully!');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Book "${bookData['name']}" added to your wishlist!')),
-    );
-  } catch (error) {
-    print('Error adding book to wishlist: $error');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Failed to add book to your wishlist.')),
-    );
+      print('Book added to wishlist successfully!');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Book "${bookData['name']}" added to your wishlist!')),
+      );
+    } catch (error) {
+      print('Error adding book to wishlist: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add book to your wishlist.')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
+    final dateFormat = DateFormat('EEEE, MMMM d, yyyy');
+    final dateString = dateFormat.format(DateTime.now());
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blue[300],
-        title: const Text('EzBorrow'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
             onPressed: scanCode,
-            icon: const Icon(Icons.qr_code_scanner, size: 24.0, color: Colors.black),
           ),
         ],
       ),
       drawer: UserMenu(email: widget.email),
-      body: Center(
-        child: Container(
-          child: const Text(
-            "Hello User",
-            style: TextStyle(fontSize: 20),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(60.0),
+                    bottomRight: Radius.circular(60.0),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    // Date and greeting
+                    Text(
+                      dateString,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Welcome Achiever!!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // New Arrivals Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'New Arrivals',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            '',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      height: 180,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: randomBooks.length,
+                        itemBuilder: (context, index) {
+                          final book = randomBooks[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: Container(
+                              width: 120,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey[200],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(10),
+                                      topRight: Radius.circular(10),
+                                    ),
+                                    child: Image.network(
+                                      book['photoUrl'],
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      book['name'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      book['author'],
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // White container for the bottom half
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(40.0),
+                    topRight: Radius.circular(40.0),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Best Ever Book Lists Section
+                    const Text(
+                      'Best Ever Book Lists',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      height: 180,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: randomBooks.length,
+                        itemBuilder: (context, index) {
+                          final book = randomBooks[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: Container(
+                              width: 250,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey[200],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(10),
+                                      topRight: Radius.circular(10),
+                                    ),
+                                    child: Image.network(
+                                      book['photoUrl'],
+                                      width: 250,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      book['name'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      book['author'],
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdCategory({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.grey[200],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: Colors.blue),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ],
         ),
       ),
     );
