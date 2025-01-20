@@ -1,8 +1,8 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.10)
-project(runner LANGUAGES CXX)
+project(runner LANGUAGES CXX)      
 
-# The name of the executable created for the application. Change this to change
+# The name of    the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "lms")
 # The unique GTK application identifier for this application. See:
